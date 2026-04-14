@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gym Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;text-align:center;padding:24px}
+.logo{font-size:48px}
+h1{font-size:20px;font-weight:700}
+p{font-size:14px;color:#777}
+.spinner{width:32px;height:32px;border:3px solid #2e2e2e;border-top-color:#e94560;border-radius:50%;animation:spin 0.8s linear infinite;margin:8px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ok{color:#3ddc84;font-size:32px}
+.err{color:#e94560;font-size:14px}
+</style>
+</head>
+<body>
+<div class="logo">&#127947;</div>
+<h1>Gym Tracker</h1>
+<div class="spinner" id="spinner"></div>
+<p id="msg">Confirmando tu cuenta...</p>
+
+<script>
+var SUPA_URL = 'https://vtwxnrhfpoixxsjkarmm.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0d3hucmhmcG9peHhzamthcm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDk4MjcsImV4cCI6MjA5MDk4NTgyN30.i5l5ZDwNz7aRqwT-6jfp3b4BOTkCZuA0XSsV7v43rU8';
+
+function setMsg(txt, ok) {
+  document.getElementById('spinner').style.display = 'none';
+  var m = document.getElementById('msg');
+  m.textContent = txt;
+  if (ok) m.style.color = '#3ddc84';
+  else m.style.color = '#e94560';
+}
+
+// Parse hash or query params
+function getParams() {
+  var hash = window.location.hash.substring(1);
+  var query = window.location.search.substring(1);
+  var str = hash || query;
+  var params = {};
+  str.split('&').forEach(function(p) {
+    var kv = p.split('=');
+    if (kv.length === 2) params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]);
+  });
+  return params;
+}
+
+var params = getParams();
+
+// If we have access_token directly in hash (PKCE flow)
+if (params.access_token) {
+  var session = {
+    access_token: params.access_token,
+    refresh_token: params.refresh_token || '',
+    user: {}
+  };
+  // Get user info
+  fetch(SUPA_URL + '/auth/v1/user', {
+    headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + params.access_token}
+  }).then(function(r) { return r.json(); }).then(function(u) {
+    session.user = u;
+    try { localStorage.setItem('gym_session', JSON.stringify(session)); } catch(e) {}
+    setMsg('Cuenta confirmada. Redirigiendo...', true);
+    setTimeout(function() { window.location.href = '/'; }, 1500);
+  }).catch(function() {
+    try { localStorage.setItem('gym_session', JSON.stringify(session)); } catch(e) {}
+    setMsg('Cuenta confirmada. Redirigiendo...', true);
+    setTimeout(function() { window.location.href = '/'; }, 1500);
+  });
+}
+// Token hash flow
+else if (params.token_hash || params.token) {
+  var token = params.token_hash || params.token;
+  var type = params.type || 'email';
+  fetch(SUPA_URL + '/auth/v1/verify', {
+    method: 'POST',
+    headers: {'apikey': SUPA_KEY, 'Content-Type': 'application/json'},
+    body: JSON.stringify({token_hash: token, type: type})
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (res.access_token) {
+      try { localStorage.setItem('gym_session', JSON.stringify(res)); } catch(e) {}
+      setMsg('Cuenta confirmada. Redirigiendo...', true);
+      setTimeout(function() { window.location.href = '/'; }, 1500);
+    } else {
+      setMsg('Error al confirmar. Intenta entrar directamente.', false);
+      setTimeout(function() { window.location.href = '/'; }, 2500);
+    }
+  }).catch(function() {
+    setMsg('Error de conexion. Redirigiendo...', false);
+    setTimeout(function() { window.location.href = '/'; }, 2500);
+  });
+}
+else {
+  setMsg('Redirigiendo...', true);
+  setTimeout(function() { window.location.href = '/'; }, 1000);
+}
+</script>
+</body>
+</html>
