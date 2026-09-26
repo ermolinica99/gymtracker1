@@ -128,7 +128,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .serie-num{font-size:11px;color:var(--mu);font-weight:700;width:16px;flex-shrink:0;text-align:center}
 .serie-input{flex:1;background:transparent;border:none;color:var(--tx);font-size:19px;font-weight:700;text-align:center;padding:0;font-family:var(--font)}
 .serie-input:focus{outline:none}
-.serie-input::placeholder{color:var(--s5)}
+.serie-input::placeholder{color:var(--mu2)}
 .serie-unit{font-size:11px;color:var(--mu);flex-shrink:0}
 
 /* EXERCISE TIMER */
@@ -835,7 +835,7 @@ var DC=[{id:'c1',name:'Correr',icon:'&#127939;'},{id:'c2',name:'Bici',icon:'&#12
 
 var G={},CARDIO=[],ud={},dm={};
 var cG='pecho',cW=47,cY=2025,cM='dash',cDay='';
-var dbId=null,stOut=null,loaded=false,syncing=null,syncAgain=false,syncFails=0,refreshing=null;
+var ejViewDay=null,dbId=null,stOut=null,loaded=false,syncing=null,syncAgain=false,syncFails=0,refreshing=null;
 var tSec=0,tInt=null,tRun=false;
 var mExG=null,mExId=null;
 var audioCtx=null;
@@ -948,7 +948,7 @@ function renderHome(){
     '<div class="home-streak" onclick="goMain(\'dash\')" style="cursor:pointer;margin-top:16px">'+
       '<div class="home-streak-num">'+streak+'</div>'+
       '<div class="home-streak-info">'+
-        '<div class="home-streak-lbl">días de racha 🔥</div>'+
+        '<div class="home-streak-lbl">'+(streak===1?'semana entrenando 🔥':'semanas seguidas entrenando 🔥')+'</div>'+
         '<div class="home-streak-sub">Toca para ver dashboard</div>'+
       '</div>'+
     '</div>'+
@@ -1147,7 +1147,8 @@ function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?
 function fmtD(s){try{var d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
 function fmtShort(s){try{var d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});}catch(e){return s;}}
 function addDays(s,n){var d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
-function chWeek(d){cW+=d;if(cW>52){cW=1;cY++;}if(cW<1){cW=52;cY--;}renderEj();}
+function setEjDay(d){ejViewDay=d;renderEj();var l=document.getElementById('ej-list');if(l&&l.parentElement)l.parentElement.scrollTop=0;}
+function chWeek(d){ejViewDay=null;cW+=d;if(cW>52){cW=1;cY++;}if(cW<1){cW=52;cY--;}renderEj();}
 function chDay(d){cDay=addDays(cDay,d);renderCardio();}
 function fEx(id){var gks=Object.keys(G);for(var g=0;g<gks.length;g++){var exs=G[gks[g]].exs;for(var e=0;e<exs.length;e++)if(exs[e].id===id)return exs[e];}return null;}
 function gId(p){return p+'_'+Date.now()+'_'+Math.floor(Math.random()*1000);}
@@ -1465,6 +1466,7 @@ function goMain(s,btn){
   else renderStats();
 }
 function goGroup(g,btn){
+  ejViewDay=null;
   cG=g;
   document.querySelectorAll('.grp-tab,.sub-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
@@ -1618,7 +1620,7 @@ function renderIAAnalysis(container){
 
   // Streak warning
   var streak=calcStreak();
-  if(streak===0)suggestions.push({icon:'&#128293;',color:'var(--or)',text:'Lleva '+Math.abs(streak)+' semanas sin entrenar — hora de volver!'});
+  if(streak===0)suggestions.push({icon:'&#128293;',color:'var(--or)',text:'Llevas más de una semana sin entrenar — ¡hora de volver!'});
 
   // Progression opportunities
   gks.forEach(function(gk){
@@ -2177,7 +2179,7 @@ function calcStreak(){
   var streak=0,w=cW,y=cY;
   for(var i=0;i<52;i++){
     var days=getWeekDaysArr(w,y),hasData=false;
-    all.forEach(function(ex){if(!hasData)days.forEach(function(d){if(dm[ex.id+'_'+d])hasData=true;});});
+    all.forEach(function(ex){if(!hasData)days.forEach(function(d){if(dm[ex.id+'_'+d]||histVals(ex.id,d).length)hasData=true;});});
     if(!hasData){if(i===0){w--;if(w<1){w=52;y--;}continue;}break;}
     streak++;w--;if(w<1){w=52;y--;}
   }
@@ -2194,44 +2196,35 @@ function renderEj(){
   updateMiniDash();
   var list=document.getElementById('ej-list');list.innerHTML='';
 
-  // Determine which day to show
-  var wdays=getWeekDaysArr(cW,cY);
-  var td_ej=todayStr();
-
-  if(wdays.indexOf(td_ej)<0){
+  // Determine which day to show. In the current week it is always today unless the
+  // user explicitly opens another day; entries are saved to the day shown.
+  var wdays=getWeekDaysArr(cW,cY),today=todayStr();
+  function grpHas(d){var h=false;if(G[cG])G[cG].exs.forEach(function(ex){if(getSeriesForDay(ex.id,d))h=true;});return h;}
+  var td_ej=today,refDay=null,isCurWeek=wdays.indexOf(today)>=0;
+  if(ejViewDay&&wdays.indexOf(ejViewDay)>=0)td_ej=ejViewDay;
+  else if(!isCurWeek){
     td_ej=wdays[0];
-    for(var wi=wdays.length-1;wi>=0;wi--){
-      var hasD=false;
-      if(G[cG])G[cG].exs.forEach(function(ex){if(ud.series&&ud.series[ex.id]&&ud.series[ex.id][wdays[wi]])hasD=true;});
-      if(hasD){td_ej=wdays[wi];break;}
-    }
-  } else {
-    var todayHasData=false;
-    if(G[cG])G[cG].exs.forEach(function(ex){if(ud.series&&ud.series[ex.id]&&ud.series[ex.id][td_ej])todayHasData=true;});
-    if(!todayHasData){
-      var pastDays=wdays.filter(function(d){return d<=td_ej;});
-      for(var wi2=pastDays.length-1;wi2>=0;wi2--){
-        var hasD2=false;
-        if(G[cG])G[cG].exs.forEach(function(ex){if(ud.series&&ud.series[ex.id]&&ud.series[ex.id][pastDays[wi2]])hasD2=true;});
-        if(hasD2){td_ej=pastDays[wi2];break;}
-      }
-    }
+    for(var wi=wdays.length-1;wi>=0;wi--){if(grpHas(wdays[wi])){td_ej=wdays[wi];break;}}
+  } else if(!grpHas(today)){
+    // Today is empty: show last session of this group this week as grey reference
+    for(var wi2=wdays.indexOf(today)-1;wi2>=0;wi2--){if(grpHas(wdays[wi2])){refDay=wdays[wi2];break;}}
   }
-
-  // Date banner if showing a past day
-  if(td_ej!==todayStr()){
-    var dParts=td_ej.split('-');
-    var dObj=new Date(parseInt(dParts[0]),parseInt(dParts[1])-1,parseInt(dParts[2]));
-    var dStr=dObj.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});
-    var dateInd=document.createElement('div');
-    dateInd.style.cssText='background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:12px;color:var(--gold);font-weight:600;text-align:center';
-    dateInd.textContent='Mostrando '+dStr+' - Guardar para registrar hoy';
-    list.appendChild(dateInd);
+  function dayLbl(d){return new Date(d+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});}
+  var bStyle='background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:var(--gold);font-weight:600;display:flex;align-items:center;gap:8px';
+  var bBtn='flex-shrink:0;background:var(--s2);border:1px solid var(--s4);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer';
+  var banner=null;
+  if(td_ej!==today){
+    banner=document.createElement('div');banner.style.cssText=bStyle;
+    banner.innerHTML='<span style="flex:1">&#128197; Estás viendo el <b>'+dayLbl(td_ej)+'</b>. Lo que cambies se guarda en ese día.</span>'+(isCurWeek?'<button style="'+bBtn+'" onclick="setEjDay(null)">Volver a hoy</button>':'');
+  } else if(refDay){
+    banner=document.createElement('div');banner.style.cssText=bStyle;
+    banner.innerHTML='<span style="flex:1">Hoy aún no has apuntado nada. En gris, lo del <b>'+dayLbl(refDay)+'</b>.</span><button style="'+bBtn+'" onclick="setEjDay(\''+refDay+'\')">Editar ese día</button>';
   }
+  if(banner)list.appendChild(banner);
 
   if(!g.exs||g.exs.length===0){list.innerHTML='<p style="color:var(--mu3);padding:20px;text-align:center">Sin ejercicios</p>';return;}
   g.exs.forEach(function(ex){
-    var card=bCard(ex,cG,td_ej);
+    var card=bCard(ex,cG,td_ej,refDay);
     list.appendChild(card);
     var mup=card.querySelector('#mup_'+ex.id);
     var mdn=card.querySelector('#mdn_'+ex.id);
@@ -2244,9 +2237,10 @@ function renderEj(){
   setTimeout(function(){drawAllMiniCharts();},80);
 }
 
-function bCard(ex,gk,td){
+function bCard(ex,gk,td,refDay){
   if(!td)td=todayStr();
   var ser=parseSeries(ex.s);
+  var refData=refDay?getSeriesForDay(ex.id,refDay)||[]:[];
   var serData=getSeriesForDay(ex.id,td)||new Array(ser.sets).fill(null);
   var isDone=!!dm[ex.id+'_'+td];
   var pr=getPRForEx(ex.id);
@@ -2266,7 +2260,8 @@ function bCard(ex,gk,td){
   var serHtml='<div class="series-grid">';
   for(var si=0;si<ser.sets;si++){
     var val=serData[si]!==null&&serData[si]!==undefined&&serData[si]!==''?serData[si]:'';
-    serHtml+='<div class="serie-row"><span class="serie-num">'+(si+1)+'</span><input class="serie-input" type="number" inputmode="decimal" step="0.5" placeholder="-" value="'+val+'" onchange="saveSeries(\''+ex.id+'\',\''+td+'\','+si+',this.value)" onfocus="this.select()"><span class="serie-unit">'+(isAbs?'reps':'kg')+'</span></div>';
+    var ph=refData[si]!==null&&refData[si]!==undefined&&refData[si]!==''?refData[si]:'-';
+    serHtml+='<div class="serie-row"><span class="serie-num">'+(si+1)+'</span><input class="serie-input" type="number" inputmode="decimal" step="0.5" placeholder="'+ph+'" value="'+val+'" onchange="saveSeries(\''+ex.id+'\',\''+td+'\','+si+',this.value)" onfocus="this.select()"><span class="serie-unit">'+(isAbs?'reps':'kg')+'</span></div>';
   }
   serHtml+='</div>';
 
@@ -2954,7 +2949,7 @@ function renderStats(){
   var recs=0,prs=0,totalVol=0,td=todayStr();
   all.forEach(function(ex){if(getPRForEx(ex.id))prs++;totalVol+=calcVolumeSemana(ex.id);if(ud.series&&ud.series[ex.id])recs+=Object.keys(ud.series[ex.id]).length;});
   var sg=document.createElement('div');sg.className='sg';
-  sg.innerHTML='<div class="sc"><div class="sn gold-text">'+calcStreak()+'</div><div class="sl">Racha sem</div></div><div class="sc"><div class="sn">'+recs+'</div><div class="sl">Sesiones</div></div><div class="sc"><div class="sn" style="color:var(--red2)">'+prs+'</div><div class="sl">PRs activos</div></div><div class="sc"><div class="sn">'+Math.round(totalVol/1000*10)/10+'k</div><div class="sl">Kg sem</div></div>';
+  sg.innerHTML='<div class="sc"><div class="sn gold-text">'+calcStreak()+'</div><div class="sl">Semanas seguidas</div></div><div class="sc"><div class="sn">'+recs+'</div><div class="sl">Sesiones</div></div><div class="sc"><div class="sn" style="color:var(--red2)">'+prs+'</div><div class="sl">PRs activos</div></div><div class="sc"><div class="sn">'+Math.round(totalVol/1000*10)/10+'k</div><div class="sl">Kg sem</div></div>';
   content.appendChild(sg);
   var pw=document.createElement('div');pw.className='pw2';
   if(ud.bodyWeight&&Object.keys(ud.bodyWeight).length>0){var bwk=Object.keys(ud.bodyWeight).sort(),bwf=ud.bodyWeight[bwk[0]],bwl=ud.bodyWeight[bwk[bwk.length-1]],bwd=Math.round((bwl-bwf)*10)/10;var bwcls=bwd<0?'bdg-up':bwd>0?'bdg-dn':'bdg-sm';var h2bw=document.createElement('h2');h2bw.textContent='Peso corporal';pw.appendChild(h2bw);var bwi=document.createElement('div');bwi.className='pi';bwi.innerHTML='<div class="pi-row"><span class="pi-nm">Peso corporal</span><span class="bdg '+bwcls+'">'+(bwd>0?'+':'')+bwd+' kg</span></div><div class="pi-sub"><span>Inicio: '+bwf+' kg</span><span>Ahora: '+bwl+' kg</span></div><div class="chart-area" style="height:70px;margin-top:6px"><svg class="chart-svg" id="bw-stat-svg"></svg></div>';pw.appendChild(bwi);setTimeout(function(){drawChart('bw-stat-svg',bwk,ud.bodyWeight,'#8b5cf6');},60);}
