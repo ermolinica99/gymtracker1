@@ -377,6 +377,29 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .hist-empty{text-align:center;padding:18px;color:var(--mu);font-size:13px}
 .home-week-day{cursor:pointer}
 
+/* PREVISIONES */
+.fc-card{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r2);padding:14px;margin-bottom:10px;cursor:pointer}
+.fc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.fc-nm{font-size:14px;font-weight:700}
+.fc-grp{font-size:10px;color:var(--mu3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+.fc-st{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.fc-st.up{background:rgba(34,197,94,0.12);color:var(--gr)}
+.fc-st.beat{background:rgba(201,168,76,0.15);color:var(--gold2)}
+.fc-st.flat{background:var(--s3);color:var(--mu3)}
+.fc-st.down{background:rgba(204,41,54,0.12);color:var(--red2)}
+.fc-nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
+.fc-n{background:var(--s2);border-radius:9px;padding:7px 8px}
+.fc-n-v{font-size:15px;font-weight:800}
+.fc-n-l{font-size:9px;color:var(--mu3);text-transform:uppercase;letter-spacing:0.4px;margin-top:1px}
+.fc-svg{width:100%;height:70px;display:block;margin-top:8px}
+.fc-note{font-size:11px;color:var(--mu3);margin-top:6px}
+.fc-pill{display:flex;align-items:center;gap:8px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:9px;padding:7px 10px;font-size:12px;margin-bottom:10px;cursor:pointer}
+.fc-pill b{color:var(--gold2)}
+.fc-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.fc-tbl td{padding:6px 4px;border-bottom:1px solid var(--s3)}
+.fc-tbl td:not(:first-child){text-align:right}
+.fc-sec{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.6px;margin:16px 0 4px}
+
 
 /* STATS */
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
@@ -650,6 +673,13 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
     <div class="hdr">
       <button class="hamburger" onclick="openSidebar()">☰</button><div class="hdr-info"><h1>Estadisticas</h1><p>Evolucion completa</p></div></div>
     <div class="scrl" id="stats-content"></div>
+  </div>
+
+  <!-- PREVISIONES -->
+  <div class="scr" id="scr-prev">
+    <div class="hdr">
+      <button class="hamburger" onclick="openSidebar()">☰</button><div class="hdr-info"><h1>Previsiones</h1><p>Lo que vas a mover cada semana</p></div></div>
+    <div class="scrl" id="prev-content"></div>
   </div>
 
   <!-- HISTORIAL -->
@@ -1031,7 +1061,7 @@ function renderProgChart(exId){
       '<div class="prog-stat"><div class="prog-stat-val">'+pr.toFixed(1)+' kg</div><div class="prog-stat-lbl">PR histórico</div></div>'+
       '<div class="prog-stat"><div class="prog-stat-val">'+last.toFixed(1)+' kg</div><div class="prog-stat-lbl">Último</div></div>'+
       '<div class="prog-stat"><div class="prog-stat-val" style="color:'+(pct>=0?'var(--gr)':'var(--red)')+'">'+( pct>=0?'+':'')+pct+'%</div><div class="prog-stat-lbl">Progreso total</div></div>'+
-    '</div>';
+    '</div>'+fcDetailHtml(exId);
 }
 
 // ── PDF EXPORT ─────────────────────────────────────────────────────────────────
@@ -1413,7 +1443,7 @@ function goMain(s,btn){
   if(btn)document.querySelectorAll('.main-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
   document.querySelectorAll('#main .scr').forEach(function(b){b.classList.remove('on');});
-  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats',hist:'scr-hist'};
+  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats',hist:'scr-hist',prev:'scr-prev'};
   document.getElementById(ids[s]).classList.add('on');
   if(s==='home')renderHome();
   else if(s==='dash')renderDash();
@@ -1431,6 +1461,7 @@ function goMain(s,btn){
   else if(s==='fotos')renderFotos();
   else if(s==='alim'){renderAlim();}
   else if(s==='hist')renderHist();
+  else if(s==='prev')renderPrev();
   else renderStats();
 }
 function goGroup(g,btn){
@@ -1592,8 +1623,9 @@ function renderIAAnalysis(container){
   // Progression opportunities
   gks.forEach(function(gk){
     G[gk].exs.forEach(function(ex){
-      var prog=checkProgresion(ex.id);
-      if(prog)suggestions.push({icon:'&#128200;',color:'var(--gr)',text:ex.name+': listo para subir a '+prog+' kg'});
+      var fc=gk==='abdominales'?null:calcForecast(ex.id);
+      if(fc&&fc.status.k==='beat')suggestions.push({icon:'&#128640;',color:'var(--gr)',text:ex.name+': superando la prevision — la semana que viene '+fc.next+' kg'});
+      else if(fc&&fc.status.k==='down')suggestions.push({icon:'&#9888;',color:'var(--red2)',text:ex.name+': por debajo de lo previsto — revisa descanso y tecnica'});
     });
   });
 
@@ -1848,6 +1880,142 @@ function renderCalBody(){
       body.appendChild(row);
     });
   }
+}
+
+// ── PREVISIONES ────────────────────────────────────────────────────────────────
+// Adaptive weekly forecast per exercise (damped Holt exponential smoothing):
+// each new week updates the level and the trend, so beating the forecast raises
+// the next ones and falling short lowers them. RPE of the last session tempers it.
+var FC_ALPHA=0.6,FC_BETA=0.35,FC_PHI=0.92;
+function fcMonday(d){var dt=new Date(d+'T12:00:00');return addDays(d,-((dt.getDay()+6)%7));}
+function fcWeeksBetween(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/(7*86400000));}
+function fcRound(v){return Math.round(v*2)/2;}
+function fcUnit(gk){return gk==='abdominales'?'reps':'kg';}
+// One value per week: the best session mean of that week
+function fcWeekly(id){
+  var wk={};
+  if(ud.series&&ud.series[id])Object.keys(ud.series[id]).forEach(function(d){var m=getMeanForDay(id,d);if(m!==null&&m>0){var w=fcMonday(d);if(!wk[w]||m>wk[w])wk[w]=m;}});
+  return Object.keys(wk).sort().map(function(w){return{w:w,v:wk[w]};});
+}
+function fcSum(h){var t=0,p=1;for(var i=0;i<h;i++){p*=FC_PHI;t+=p;}return t;}
+function fcClampTrend(t,level){var lim=Math.max(0.5,Math.min(5,level*0.05));return Math.max(-lim,Math.min(lim,t));}
+// Run the model over the weekly points; returns state after them plus the backtest
+function fcRun(pts){
+  var level=pts[0].v,trend=0,hist=[];
+  for(var i=1;i<pts.length;i++){
+    var gap=fcWeeksBetween(pts[i-1].w,pts[i].w);
+    // After a break the trend fades and some strength is lost
+    var tr=gap>2?trend*Math.pow(0.5,gap-2):trend;
+    var pred=level+tr*fcSum(Math.min(gap,2));
+    hist.push({w:pts[i].w,pred:fcRound(pred),act:pts[i].v});
+    var nl=FC_ALPHA*pts[i].v+(1-FC_ALPHA)*pred;
+    trend=fcClampTrend(FC_BETA*(nl-level)/Math.max(gap,1)+(1-FC_BETA)*FC_PHI*tr,nl);
+    level=nl;
+  }
+  return{level:level,trend:trend,hist:hist};
+}
+function calcForecast(id){
+  var pts=fcWeekly(id);if(pts.length<2)return pts.length?{few:true,n:pts.length}:null;
+  var thisW=fcMonday(todayStr());
+  var before=pts.filter(function(p){return p.w<thisW;});
+  var done=pts.length&&pts[pts.length-1].w===thisW?pts[pts.length-1].v:null;
+  var all=fcRun(pts);
+  // Last session RPE tempers the trend
+  var lastD=Object.keys(ud.series[id]).sort().reverse().find(function(d){return getMeanForDay(id,d)!==null;});
+  var rpe=lastD?getRPE(id,lastD):0,rt=all.trend;
+  if(rpe>=9)rt=rt>0?rt*0.4:rt;else if(rpe&&rpe<=6)rt=rt>0?rt*1.3:rt*0.5;
+  rt=fcClampTrend(rt,all.level);
+  var lastW=pts[pts.length-1].w,gapNow=Math.max(fcWeeksBetween(lastW,thisW),0);
+  if(gapNow>2)rt=rt*Math.pow(0.5,gapNow-2);
+  // This week: forecast made with data up to last week, so it stays fixed during the week
+  var cur=null;
+  if(before.length>=2){var b=fcRun(before),g=fcWeeksBetween(before[before.length-1].w,thisW),bt=g>2?b.trend*Math.pow(0.5,g-2):b.trend;cur=fcRound(b.level+bt*fcSum(Math.min(g,2)));}
+  else if(before.length===1)cur=fcRound(before[0].v);
+  var base=done!==null?0:gapNow; // weeks ahead from the last data point
+  var next=[];for(var h=1;h<=4;h++)next.push({w:addDays(thisW,7*h),v:fcRound(all.level+rt*fcSum(base+h))});
+  // Status from the last 3 forecast errors and the trend
+  var last3=all.hist.slice(-3),beat=0,miss=0;
+  last3.forEach(function(x){if(x.act>=x.pred+0.5)beat++;else if(x.act<=x.pred-1)miss++;});
+  var st;
+  if(gapNow>2)st={k:'flat',t:'Sin entrenar '+gapNow+' sem'};
+  else if(last3.length>=2&&beat>=2)st={k:'beat',t:'Superando previsión'};
+  else if(last3.length>=2&&miss>=2)st={k:'down',t:'Por debajo'};
+  else if(rt>Math.max(0.25,all.level*0.006))st={k:'up',t:'Mejorando'};
+  else if(rt<-Math.max(0.25,all.level*0.006))st={k:'down',t:'Empeorando'};
+  else st={k:'flat',t:'Estancado'};
+  var ok=all.hist.filter(function(x){return x.act>=x.pred-0.5;}).length;
+  return{pts:pts,hist:all.hist,cur:cur,done:done,next:next[0].v,next4:next,trend:rt,rpe:rpe,status:st,hit:all.hist.length?Math.round(ok/all.hist.length*100):null,thisW:thisW};
+}
+function fcSvg(fc){
+  var pts=fc.pts.slice(-10),fut=fc.next4,W=300,H=70,P=6;
+  var vals=pts.map(function(p){return p.v;}).concat(fut.map(function(p){return p.v;}));
+  fc.hist.slice(-10).forEach(function(x){vals.push(x.pred);});
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1;
+  var x0=pts[0].w,span=Math.max(fcWeeksBetween(x0,fut[fut.length-1].w),1);
+  function X(w){return P+(W-2*P)*fcWeeksBetween(x0,w)/span;}function Y(v){return H-P-(H-2*P)*(v-mn)/rg;}
+  var act=pts.map(function(p){return X(p.w)+','+Y(p.v);}).join(' ');
+  var pr=fc.hist.filter(function(x){return x.w>=x0;}).map(function(x){return X(x.w)+','+Y(x.pred);});
+  var lp=pts[pts.length-1],fu=[X(lp.w)+','+Y(lp.v)].concat(fut.map(function(p){return X(p.w)+','+Y(p.v);}));
+  var h='<svg class="fc-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+  if(pr.length>1)h+='<polyline points="'+pr.join(' ')+'" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>';
+  h+='<polyline points="'+fu.join(' ')+'" fill="none" stroke="#e8c84a" stroke-width="2" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/>';
+  h+='<polyline points="'+act+'" fill="none" stroke="#c9a84c" stroke-width="2.5" vector-effect="non-scaling-stroke"/>';
+  h+='</svg>';
+  return h;
+}
+function fcWeekLbl(w){var d=new Date(w+'T12:00:00');return d.getDate()+'/'+(d.getMonth()+1);}
+function fcPillHtml(id,gk){
+  var fc=calcForecast(id),u=fcUnit(gk);if(!fc||fc.few)return '';
+  var t='&#128302; Previsión esta semana: <b>'+(fc.cur!==null?fc.cur+' '+u:'—')+'</b>';
+  if(fc.done!==null&&fc.cur!==null)t+=fc.done>=fc.cur-0.5?' · hecho '+fc.done+' &#9989;':' · hecho '+fc.done;
+  t+=' · próxima <b>'+fc.next+' '+u+'</b>';
+  return '<div class="fc-pill" onclick="openProgModal(\''+id+'\')"><span style="flex:1">'+t+'</span><span class="fc-st '+fc.status.k+'">'+fc.status.t+'</span></div>';
+}
+function fcDetailHtml(id){
+  var fc=calcForecast(id);if(!fc||fc.few)return '<div class="fc-note" style="margin-top:14px">&#128302; Con 2 semanas de datos empezaré a hacer previsiones.</div>';
+  var gk=Object.keys(G).find(function(g){return G[g].exs.some(function(e){return e.id===id;});}),u=fcUnit(gk);
+  var h='<div class="fc-sec">&#128302; Previsión próximas semanas</div><table class="fc-tbl">';
+  fc.next4.forEach(function(n,i){h+='<tr><td>Semana del '+fcWeekLbl(n.w)+(i===0?' (próxima)':'')+'</td><td><b class="gold-text">'+n.v+' '+u+'</b></td></tr>';});
+  h+='</table>';
+  if(fc.hist.length){
+    h+='<div class="fc-sec">Previsto vs hecho'+(fc.hit!==null?' · acierto '+fc.hit+'%':'')+'</div><table class="fc-tbl">';
+    fc.hist.slice(-6).reverse().forEach(function(x){var d=Math.round((x.act-x.pred)*10)/10,c=d>=0.5?'var(--gr)':d<=-1?'var(--red2)':'var(--mu3)';
+      h+='<tr><td>Sem. '+fcWeekLbl(x.w)+'</td><td style="color:var(--mu3)">prev. '+x.pred+'</td><td>hecho '+Math.round(x.act*10)/10+'</td><td style="color:'+c+';font-weight:700">'+(d>0?'+':'')+d+'</td></tr>';});
+    h+='</table>';
+  }
+  h+='<div class="fc-note">Cada semana la previsión se recalcula con lo que haces: si la superas sube la tendencia, si no llegas baja.'+(fc.rpe>=9?' Tu último RPE fue '+fc.rpe+', así que la subida es más suave.':'')+'</div>';
+  return h;
+}
+function renderPrev(){
+  var el=document.getElementById('prev-content');if(!el)return;
+  var h='',cnt={beat:0,up:0,flat:0,down:0},cards=[],few=0;
+  Object.keys(G).forEach(function(gk){G[gk].exs.forEach(function(ex){
+    var fc=calcForecast(ex.id);if(!fc)return;if(fc.few){few++;return;}
+    cnt[fc.status.k]++;cards.push({ex:ex,gk:gk,fc:fc});
+  });});
+  if(!cards.length){el.innerHTML='<div class="hist-empty" style="padding:40px 20px">&#128302; Aún no hay suficientes datos.<br>Cuando un ejercicio tenga al menos 2 semanas registradas verás aquí su previsión.</div>';return;}
+  h+='<div class="hist-sum">'+
+    '<div class="hist-st"><div class="hist-st-v" style="color:var(--gold2)">'+cnt.beat+'</div><div class="hist-st-l">Superando previsión</div></div>'+
+    '<div class="hist-st"><div class="hist-st-v" style="color:var(--gr)">'+cnt.up+'</div><div class="hist-st-l">Mejorando</div></div>'+
+    '<div class="hist-st"><div class="hist-st-v">'+cnt.flat+'</div><div class="hist-st-l">Estancados</div></div>'+
+    '<div class="hist-st"><div class="hist-st-v" style="color:var(--red2)">'+cnt.down+'</div><div class="hist-st-l">Por debajo / bajando</div></div>'+
+  '</div>';
+  var order={down:0,beat:1,up:2,flat:3};
+  cards.sort(function(a,b){return order[a.fc.status.k]-order[b.fc.status.k];});
+  cards.forEach(function(c){
+    var fc=c.fc,u=fcUnit(c.gk);
+    var curTxt=fc.cur!==null?fc.cur+' '+u:'—',doneTxt=fc.done!==null?(Math.round(fc.done*10)/10)+' '+u:'pendiente';
+    h+='<div class="fc-card" onclick="openProgModal(\''+c.ex.id+'\')">'+
+      '<div class="fc-top"><div><div class="fc-nm">'+c.ex.name+'</div><div class="fc-grp">'+(G[c.gk]?G[c.gk].name:c.gk)+(fc.hit!==null?' · acierto '+fc.hit+'%':'')+'</div></div><span class="fc-st '+fc.status.k+'">'+fc.status.t+'</span></div>'+
+      '<div class="fc-nums">'+
+        '<div class="fc-n"><div class="fc-n-v">'+curTxt+'</div><div class="fc-n-l">Esta semana</div></div>'+
+        '<div class="fc-n"><div class="fc-n-v" style="color:'+(fc.done===null?'var(--mu3)':fc.cur!==null&&fc.done>=fc.cur-0.5?'var(--gr)':'var(--red2)')+'">'+doneTxt+'</div><div class="fc-n-l">Hecho</div></div>'+
+        '<div class="fc-n"><div class="fc-n-v gold-text">'+fc.next4[fc.next4.length-1].v+' '+u+'</div><div class="fc-n-l">En 4 semanas</div></div>'+
+      '</div>'+fcSvg(fc)+
+    '</div>';
+  });
+  h+='<div class="fc-note" style="padding:0 4px 20px">Línea dorada: lo que has hecho (mejor sesión de cada semana, media de las series). Discontinua gris: lo que se preveía. Discontinua amarilla: previsión. Toca un ejercicio para ver el detalle.'+(few?' '+few+' ejercicio'+(few===1?'':'s')+' con solo 1 semana de datos todavía.':'')+'</div>';
+  el.innerHTML=h;
 }
 
 // ── HISTORIAL ──────────────────────────────────────────────────────────────────
@@ -2168,7 +2336,7 @@ function bCard(ex,gk,td){
     tfHtml+
     '<textarea class="note-inp" placeholder="Notas..." onchange="saveNote(\''+ex.id+'\',this.value)">'+note+'</textarea>'+
     '<button class="save-ex-btn" onclick="saveExBtn(\''+ex.id+'\',\''+td+'\',this)">&#10003; Guardar</button>'+
-    (checkProgresion(ex.id)?'<div class="suggestion-pill">&#128200; Sugerencia: '+checkProgresion(ex.id)+' kg la proxima semana (+2.5 kg)</div>':'')+
+    fcPillHtml(ex.id,gk)+
     '<div class="ex-mini-chart" id="mc_'+ex.id+'"><svg></svg></div>';
   return card;
 }
@@ -2920,6 +3088,7 @@ document.getElementById('reg-pass').addEventListener('keydown',function(e){if(e.
     <button class="sb-item" data-screen="fotos" onclick="navTo('fotos')"><span class="sb-ic">📷</span><span>Fotos progreso</span></button>
     <button class="sb-item" data-screen="obj" onclick="navTo('obj')"><span class="sb-ic">🎯</span><span>Objetivos</span></button>
     <button class="sb-item" data-screen="hist" onclick="navTo('hist')"><span class="sb-ic">📅</span><span>Historial</span></button>
+    <button class="sb-item" data-screen="prev" onclick="navTo('prev')"><span class="sb-ic">🔮</span><span>Previsiones</span></button>
     <button class="sb-item" data-screen="stats" onclick="navTo('stats')"><span class="sb-ic">📈</span><span>Estadísticas</span></button>
     <button class="sb-item" data-screen="dash" onclick="navTo('dash')"><span class="sb-ic">📊</span><span>Dashboard</span></button>
   </div>
