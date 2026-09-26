@@ -2,7 +2,7 @@
   "name": "Gym Tracker",
   "short_name": "Gym",
   "description": "Seguimiento de entrenamiento",
-  "start_url": "./",
+  "start_url": "/gymtracker1/gymv2/",
   "display": "standalone",
   "background_color": "#090909",
   "theme_color": "#090909",
@@ -21,6 +21,6 @@
       "purpose": "any maskable"
     }
   ],
-  "scope": "./",
-  "id": "./"
+  "scope": "/gymtracker1/gymv2/",
+  "id": "/gymtracker1/gymv2/"
 }
