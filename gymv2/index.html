@@ -61,6 +61,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .sync-btn{width:32px;height:32px;border-radius:10px;border:1px solid var(--s4);background:var(--s2);color:var(--mu);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
 .sync-btn.spin{color:var(--bl);animation:spin 1s linear infinite}
 .sync-btn.ok{color:var(--gr);border-color:rgba(34,197,94,0.3)}
+.sync-btn.err{color:var(--red2);border-color:var(--red2)}
 .user-btn{font-size:12px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:5px 12px;cursor:pointer;font-weight:600;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -713,8 +714,8 @@ function aUp(e,p,n){return sf('/auth/v1/signup',{method:'POST',headers:sh(),body
 function aOut(){return sf('/auth/v1/logout',{method:'POST',headers:sh()});}
 function aRef(rt){return sf('/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:sh(),body:JSON.stringify({refresh_token:rt})}).then(function(r){return r.json();});}
 function aRec(e){return sf('/auth/v1/recover',{method:'POST',headers:sh(),body:JSON.stringify({email:e})}).then(function(r){return r.json();});}
-function dbG(){return sf('/rest/v1/gym_data?select=*&limit=1',{headers:sh({'Prefer':'return=representation'})}).then(function(r){return r.json();});}
-function dbU(p){return sf('/rest/v1/gym_data',{method:'POST',headers:sh({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(p)});}
+function dbG(){return sf('/rest/v1/gym_data?select=*&order=updated_at.desc.nullslast&limit=1',{headers:sh()}).then(function(r){if(!r.ok){var e=new Error('HTTP '+r.status);e.status=r.status;throw e;}return r.json();}).then(function(rows){if(!Array.isArray(rows))throw new Error('Respuesta invalida');return rows;});}
+function dbU(p,keep){return sf('/rest/v1/gym_data?select=id',{method:'POST',keepalive:!!keep,headers:sh({'Prefer':'resolution=merge-duplicates,return=representation'}),body:JSON.stringify(p)});}
 
 var DG={
   pecho:{name:'Pecho',sub:'Empuje',exs:[
@@ -762,7 +763,7 @@ var DC=[{id:'c1',name:'Correr',icon:'&#127939;'},{id:'c2',name:'Bici',icon:'&#12
 
 var G={},CARDIO=[],ud={},dm={};
 var cG='pecho',cW=47,cY=2025,cM='dash',cDay='';
-var dbId=null,stOut=null;
+var dbId=null,stOut=null,loaded=false,syncing=null,syncAgain=false,syncFails=0,refreshing=null;
 var tSec=0,tInt=null,tRun=false;
 var mExG=null,mExId=null;
 var audioCtx=null;
@@ -1153,10 +1154,46 @@ function saveNote(id,val){ud['note_'+id]=val;sched();}
 function saveExTime(id,date,secs){if(!ud.exTimes)ud.exTimes={};if(!ud.exTimes[date])ud.exTimes[date]={};ud.exTimes[date][id]=secs;sched();}
 
 // ── SYNC ───────────────────────────────────────────────────────────────────────
-function sched(){if(stOut)clearTimeout(stOut);if(!isOnline){pendingSync=true;return;}stOut=setTimeout(syncNow,2500);setSB('p');}
-function setSB(s){var b=document.getElementById('sync-btn');if(!b)return;b.className='sync-btn'+(s==='spin'?' spin':s==='ok'?' ok':'');b.innerHTML=s==='ok'?'&#10003;':'&#8635;';}
-function syncNow(){if(!_s)return;setSB('spin');var p={user_id:_s.user.id,data:ud,done:dm,groups:G,cardio:CARDIO,updated_at:new Date().toISOString()};if(dbId)p.id=dbId;dbU(p).then(function(r){if(r.ok||r.status===201){setSB('ok');setTimeout(function(){setSB('');},3000);}else setSB('');}).catch(function(){setSB('');});}
-function loadC(){return dbG().then(function(rows){if(rows&&rows.length>0){var r=rows[0];dbId=r.id;if(r.data)ud=r.data;if(r.done)dm=r.done;if(r.groups&&Object.keys(r.groups).length>0){G=r.groups;if(!G.abdominales)G.abdominales=JSON.parse(JSON.stringify(DA));}else G=JSON.parse(JSON.stringify(DG));if(r.cardio&&r.cardio.length>0)CARDIO=r.cardio;else CARDIO=JSON.parse(JSON.stringify(DC));migrateOldData();}else{G=JSON.parse(JSON.stringify(DG));G.abdominales=JSON.parse(JSON.stringify(DA));CARDIO=JSON.parse(JSON.stringify(DC));}});}
+// Local backup + dirty flag: every change is written to localStorage first, and
+// only cleared once the server confirms the save.
+function saveLocal(){try{localStorage.setItem('gym_offline_data',JSON.stringify(ud));localStorage.setItem('gym_offline_done',JSON.stringify(dm));localStorage.setItem('gym_offline_groups',JSON.stringify(G));localStorage.setItem('gym_offline_cardio',JSON.stringify(CARDIO));if(_s&&_s.user)localStorage.setItem('gym_offline_user',_s.user.id);localStorage.setItem('gym_offline_ts',new Date().toISOString());}catch(e){}}
+function setDirty(v){try{if(v)localStorage.setItem('gym_dirty','1');else localStorage.removeItem('gym_dirty');}catch(e){}}
+function isDirty(){try{return localStorage.getItem('gym_dirty')==='1';}catch(e){return false;}}
+function sched(){if(!loaded)return;saveLocal();setDirty(true);pendingSync=true;if(stOut)clearTimeout(stOut);if(!isOnline){setSB('err');return;}stOut=setTimeout(syncNow,2500);setSB('p');}
+function setSB(s){document.querySelectorAll('.sync-btn,#sync-btn').forEach(function(b){b.classList.remove('spin','ok','err');if(s==='spin'||s==='ok'||s==='err')b.classList.add(s);b.innerHTML=s==='ok'?'&#10003;':s==='err'?'!':'&#8635;';});}
+// Refresh the access token if it expires in less than 2 minutes (Supabase tokens last 1h)
+function ensureSession(force){
+  if(!_s)return Promise.reject(new Error('Sin sesion'));
+  var exp=_s.expires_at||0;
+  if(!force&&exp&&exp*1000-Date.now()>120000)return Promise.resolve(_s);
+  if(refreshing)return refreshing;
+  refreshing=aRef(_s.refresh_token).then(function(res){refreshing=null;if(res&&res.access_token){if(!res.expires_at&&res.expires_in)res.expires_at=Math.floor(Date.now()/1000)+res.expires_in;_s=res;svS(res);return _s;}throw new Error('No se pudo renovar la sesion');},function(e){refreshing=null;throw e;});
+  return refreshing;
+}
+function syncNow(keep){
+  if(!_s||!loaded)return Promise.resolve(false);
+  if(stOut){clearTimeout(stOut);stOut=null;}
+  if(syncing){syncAgain=true;return syncing;}
+  setSB('spin');syncAgain=false;
+  var attempt=function(force){return ensureSession(force).then(function(){var p={user_id:_s.user.id,data:ud,done:dm,groups:G,cardio:CARDIO,updated_at:new Date().toISOString()};if(dbId)p.id=dbId;return dbU(p,keep);});};
+  syncing=attempt(false).then(function(r){if(r.status===401)return attempt(true);return r;}).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json().catch(function(){return null;}).then(function(rows){if(rows&&rows[0]&&rows[0].id)dbId=rows[0].id;});
+  }).then(function(){
+    syncing=null;syncFails=0;
+    if(syncAgain){syncAgain=false;return syncNow();}
+    pendingSync=false;setDirty(false);setSB('ok');setTimeout(function(){if(!pendingSync)setSB('');},3000);return true;
+  }).catch(function(e){
+    syncing=null;pendingSync=true;syncFails++;setSB('err');
+    if(syncFails===1||syncFails%5===0)showToast('No se pudo guardar en la nube — reintentando');
+    if(isOnline){var wait=Math.min(60000,5000*syncFails);stOut=setTimeout(syncNow,wait);}
+    return false;
+  });
+  return syncing;
+}
+function loadC(){return dbG().then(function(rows){if(rows.length>0){var r=rows[0];dbId=r.id;if(r.data)ud=r.data;if(r.done)dm=r.done;if(r.groups&&Object.keys(r.groups).length>0){G=r.groups;if(!G.abdominales)G.abdominales=JSON.parse(JSON.stringify(DA));}else G=JSON.parse(JSON.stringify(DG));if(r.cardio&&r.cardio.length>0)CARDIO=r.cardio;else CARDIO=JSON.parse(JSON.stringify(DC));migrateOldData();}else{G=JSON.parse(JSON.stringify(DG));G.abdominales=JSON.parse(JSON.stringify(DA));CARDIO=JSON.parse(JSON.stringify(DC));}});}
+// Local backup belongs to this user and still has changes the server never confirmed
+function hasLocalChanges(){try{return isDirty()&&localStorage.getItem('gym_offline_data')&&localStorage.getItem('gym_offline_user')===_s.user.id;}catch(e){return false;}}
 
 // Migra datos del formato antiguo (ud[exId][wkey]) al nuevo (ud.series[exId][date])
 function migrateOldData(){
@@ -1264,7 +1301,7 @@ var pendingSync=false;
 window.addEventListener('online',function(){
   isOnline=true;
   var dot=document.getElementById('offline-dot');if(dot)dot.style.display='none';
-  if(pendingSync){pendingSync=false;syncNow();showToast('Conexion restaurada — sincronizando');}
+  if(pendingSync){syncNow();showToast('Conexion restaurada — sincronizando');}
 });
 window.addEventListener('offline',function(){
   isOnline=false;
@@ -1272,12 +1309,10 @@ window.addEventListener('offline',function(){
   showToast('Sin conexion — datos guardados localmente');
 });
 
-function schedWithOffline(){
-  // Save to localStorage always as backup
-  try{localStorage.setItem('gym_offline_data',JSON.stringify(ud));localStorage.setItem('gym_offline_done',JSON.stringify(dm));localStorage.setItem('gym_offline_groups',JSON.stringify(G));localStorage.setItem('gym_offline_cardio',JSON.stringify(CARDIO));}catch(e){}
-  if(!isOnline){pendingSync=true;return;}
-  sched();
-}
+// Push pending changes when the app goes to background or is closed
+function flushSync(){if(pendingSync&&_s&&loaded&&isOnline)syncNow(true);}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushSync();else if(_s&&loaded&&(pendingSync||isDirty()))syncNow();});
+window.addEventListener('pagehide',flushSync);
 
 function loadOfflineBackup(){
   try{
@@ -1294,9 +1329,9 @@ function switchAuthTab(t){document.getElementById('login-form').style.display=t=
 function doLogin(){var e=document.getElementById('login-email').value.trim(),p=document.getElementById('login-pass').value,err=document.getElementById('login-err');err.textContent='';if(!e||!p){err.textContent='Rellena email y contrasena';return;}err.textContent='Entrando...';aIn(e,p).then(function(res){if(res.error){err.textContent=res.error.message||'Error';return;}if(res.access_token){_s=res;svS(res);startApp();}else err.textContent='Error al entrar';}).catch(function(){err.textContent='Error de conexion';});}
 function doRegister(){var n=document.getElementById('reg-name').value.trim(),e=document.getElementById('reg-email').value.trim(),p=document.getElementById('reg-pass').value,err=document.getElementById('reg-err'),msg=document.getElementById('reg-msg');err.textContent='';msg.textContent='';if(!e||!p){err.textContent='Rellena todos los campos';return;}if(p.length<6){err.textContent='Minimo 6 caracteres';return;}err.textContent='Creando cuenta...';aUp(e,p,n).then(function(res){if(res.error){err.textContent=res.error.message||'Error';return;}err.textContent='';if(res.access_token){_s=res;svS(res);startApp();}else msg.textContent='Revisa tu email para confirmar la cuenta';}).catch(function(){err.textContent='Error de conexion';});}
 function doReset(){var e=document.getElementById('login-email').value.trim();if(!e){document.getElementById('login-err').textContent='Escribe tu email primero';return;}aRec(e).then(function(){document.getElementById('login-err').style.color='var(--gr)';document.getElementById('login-err').textContent='Email enviado';});}
-function doLogout(){aOut();_s=null;clS();G={};CARDIO=[];ud={};dm={};dbId=null;closeModal('modal-user');document.getElementById('main').classList.remove('on');document.getElementById('auth-scr').style.display='flex';}
+function doLogout(){if(pendingSync&&!confirm('Hay cambios sin guardar en la nube. Salir igualmente?'))return;aOut();_s=null;loaded=false;clS();setDirty(false);try{['gym_offline_data','gym_offline_done','gym_offline_groups','gym_offline_cardio','gym_offline_user','gym_offline_ts'].forEach(function(k){localStorage.removeItem(k);});}catch(e){}G={};CARDIO=[];ud={};dm={};dbId=null;closeModal('modal-user');document.getElementById('main').classList.remove('on');document.getElementById('auth-scr').style.display='flex';}
 function showUserMenu(){var n=(_s&&_s.user&&_s.user.user_metadata&&_s.user.user_metadata.name)?_s.user.user_metadata.name:'Mi cuenta',em=(_s&&_s.user)?_s.user.email:'';document.getElementById('mu-name').textContent=n;document.getElementById('mu-email').textContent=em;document.getElementById('modal-user').classList.add('on');}
-function svS(s){try{localStorage.setItem('gym_s',JSON.stringify(s));}catch(e){}}
+function svS(s){if(s&&!s.expires_at&&s.expires_in)s.expires_at=Math.floor(Date.now()/1000)+s.expires_in;try{localStorage.setItem('gym_s',JSON.stringify(s));}catch(e){}}
 function clS(){try{localStorage.removeItem('gym_s');}catch(e){}}
 function ldS(){try{var s=localStorage.getItem('gym_s');return s?JSON.parse(s):null;}catch(e){return null;}}
 
@@ -1312,8 +1347,20 @@ function startApp(){
   if(cW<1)cW=1;if(cW>52)cW=52;
   cDay=todayStr();
   alimDay=todayStr();
-  setSB('spin');
-  loadC().then(function(){setSB('ok');setTimeout(function(){setSB('');},2000);goMain('home');}).catch(function(){G=JSON.parse(JSON.stringify(DG));CARDIO=JSON.parse(JSON.stringify(DC));setSB('');renderDash();});
+  setSB('spin');loaded=false;
+  var local=hasLocalChanges();
+  ensureSession(false).then(loadC).then(function(){
+    loaded=true;
+    // Changes saved on this device that never reached the server win over the server copy
+    if(local){loadOfflineBackup();showToast('Recuperados cambios sin sincronizar');sched();}
+    else{setSB('ok');setTimeout(function(){setSB('');},2000);}
+    goMain('home');
+  }).catch(function(){
+    // Could not read the server: work from the local copy, never overwrite the cloud with empty data
+    var hasCopy=false;try{hasCopy=localStorage.getItem('gym_offline_user')===_s.user.id&&!!localStorage.getItem('gym_offline_data');}catch(e){}
+    if(hasCopy){loadOfflineBackup();loaded=true;setSB('err');showToast('Sin conexion con la nube — usando copia local');goMain('home');if(local)sched();}
+    else{setSB('err');showToast('No se pudieron cargar tus datos — reintentando');setTimeout(startApp,5000);}
+  });
 }
 
 // ── NAV ────────────────────────────────────────────────────────────────────────
@@ -2629,7 +2676,7 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 document.getElementById('reg-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doRegister();});
 
-(function(){var saved=ldS();if(saved&&saved.refresh_token){aRef(saved.refresh_token).then(function(res){if(res.access_token){_s=res;svS(res);startApp();}else clS();}).catch(function(){clS();});}})();
+(function(){var saved=ldS();if(saved&&saved.refresh_token){_s=saved;ensureSession(true).then(function(){startApp();}).catch(function(e){if(e&&e.message==='No se pudo renovar la sesion'){_s=null;clS();}else startApp();});}})();
 </script>
 
 <!-- MODAL PROGRESSION -->
