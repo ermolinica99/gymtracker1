@@ -377,6 +377,56 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .hist-empty{text-align:center;padding:18px;color:var(--mu);font-size:13px}
 .home-week-day{cursor:pointer}
 
+
+/* EXERCISE CARD (compact) */
+.excard{padding:12px 12px 10px}
+.exc-head{display:flex;align-items:center;gap:10px}
+.exc-check{width:34px;height:34px;flex-shrink:0;border-radius:50%;border:2px solid var(--s5);background:transparent;color:transparent;font-size:16px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-family:var(--font)}
+.exc-check:active{transform:scale(0.9)}
+.excard.done .exc-check{background:linear-gradient(135deg,#16a34a,#22c55e);border-color:transparent;color:#fff}
+.exc-title{flex:1;min-width:0;cursor:pointer}
+.exc-name{font-size:15px;font-weight:700;line-height:1.25;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.exc-meta{font-size:12px;color:var(--mu3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exc-meta b{color:var(--tx);font-weight:700}
+.exc-meta .fc{color:var(--gold2)}
+.excard.done .exc-name{color:var(--mu3)}
+.excard.done .exc-meta{color:var(--gr)}
+.exc-chev{width:32px;height:32px;flex-shrink:0;border:none;background:transparent;color:var(--mu);font-size:18px;cursor:pointer;transition:transform 0.2s}
+.excard.open .exc-chev{transform:rotate(180deg)}
+.exc-body{margin-top:10px}
+.excard.done:not(.open) .exc-body{display:none}
+.exc-sets{display:grid;gap:6px}
+.exc-set{position:relative;background:var(--s2);border:1px solid var(--s3);border-radius:12px;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:border-color 0.15s,background 0.15s}
+.exc-set:focus-within{border-color:var(--gold);background:rgba(201,168,76,0.06)}
+.exc-set.filled{border-color:rgba(201,168,76,0.28)}
+.exc-set-n{position:absolute;top:4px;left:7px;font-size:9px;color:var(--mu);font-weight:700}
+.exc-set input{width:100%;background:transparent;border:none;color:var(--tx);font-size:20px;font-weight:800;text-align:center;padding:0;font-family:var(--font);-moz-appearance:textfield}
+.exc-set input::-webkit-outer-spin-button,.exc-set input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.exc-set input:focus{outline:none}
+.exc-set input::placeholder{color:#4a4a4a}
+.exc-set-u{font-size:9px;color:var(--mu);margin-top:-2px}
+.exc-actions{display:flex;gap:6px;margin-top:8px}
+.exc-btn{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--s4);background:var(--s2);color:var(--mu3);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.exc-btn:active{transform:scale(0.97)}
+.exc-btn.rest{color:var(--or);flex:1}
+.exc-btn.copy{color:var(--gold);flex:1}
+.exc-btn.more{flex-shrink:0}
+.exc-extra{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--s3)}
+.excard.open .exc-extra{display:block}
+.exc-extra .rpe-row,.exc-extra .ex-timer-row,.exc-extra .test-fuerza,.exc-extra .fc-pill{margin-bottom:8px}
+.exc-cfg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu3);margin-bottom:8px}
+.exc-cfg input{width:56px;height:30px;background:var(--s2);border:1px solid var(--s4);border-radius:8px;color:var(--or);font-size:13px;font-weight:700;text-align:center;font-family:var(--font)}
+.exc-tools{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
+.exc-tool{height:44px;border-radius:10px;border:1px solid var(--s4);background:var(--s2);color:var(--mu3);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.exc-tool span{font-size:15px}
+.exc-tool.del{color:var(--red2);border-color:rgba(204,41,54,0.3)}
+.exc-extra .note-inp{margin-bottom:8px}
+/* Session strip */
+.md-strip{display:flex;flex-direction:column;gap:6px}
+.md-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--mu3);gap:8px}
+.md-row b{color:var(--tx);font-weight:800;font-size:13px}
+.md-prog{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.md-prog-bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width 0.4s}
 /* PREVISIONES */
 .fc-card{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r2);padding:14px;margin-bottom:10px;cursor:pointer}
 .fc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -628,13 +678,12 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
   <!-- EJERCICIOS -->
   <div class="scr" id="scr-ej">
     <div class="hdr">
-      <button class="hamburger" onclick="openSidebar()">☰</button><div class="hdr-info"><div class="hdr-title" id="ej-title">Pecho</div><div style="font-size:11px;color:var(--mu3)" id="ej-sub"></div></div><div class="hdr-right"><button class="icon-btn" onclick="syncNow()">&#8635;</button></div></div>
+      <button class="hamburger" onclick="openSidebar()">☰</button><div class="hdr-info"><div class="hdr-title" id="ej-title">Pecho</div><div style="font-size:11px;color:var(--mu3)" id="ej-sub"></div></div><div class="hdr-right"><button class="sync-btn" onclick="syncNow()">&#8635;</button></div></div>
     <!-- Mini dashboard -->
     <div class="mini-dash" id="mini-dash">
-      <div class="mini-dash-grid">
-        <div class="md-cell"><div class="md-val gold-text" id="md-vol">—</div><div class="md-lbl">Vol hoy</div></div>
-        <div class="md-cell"><div class="md-val" id="md-volsem">—</div><div class="md-lbl">Vol semana</div></div>
-        <div class="md-cell"><div class="md-val" style="color:var(--gold)" id="md-prs">—</div><div class="md-lbl">PRs hoy</div></div>
+      <div class="md-strip">
+        <div class="md-row"><span><b id="md-prog">0/0</b> hechos hoy</span><span>Hoy <b id="md-vol">—</b></span><span>Semana <b id="md-volsem">—</b></span><span>&#127942; <b id="md-prs">—</b></span></div>
+        <div class="md-prog"><div class="md-prog-bar" id="md-prog-bar"></div></div>
       </div>
     </div>
     <div class="wnav">
@@ -1483,11 +1532,21 @@ function goGroup(g,btn){
 
 // ── MINI DASHBOARD ─────────────────────────────────────────────────────────────
 function updateMiniDash(){
-  var gks=Object.keys(G),all=[],volHoy=0,volSem=0,prsHoy=0,td=todayStr();
-  gks.forEach(function(gk){G[gk].exs.forEach(function(ex){all.push(ex);volHoy+=calcVolumeDay(ex.id,td);volSem+=calcVolumeSemana(ex.id);var s=getSeriesForDay(ex.id,td);if(s){var pr=getPRForEx(ex.id);s.forEach(function(v){if(parseFloat(v)===pr&&pr!==null)prsHoy++;});}});});
-  document.getElementById('md-vol').textContent=volHoy>0?volHoy+'kg':'—';
-  document.getElementById('md-volsem').textContent=volSem>0?Math.round(volSem/1000*10)/10+'k':'—';
-  document.getElementById('md-prs').textContent=prsHoy>0?prsHoy:'—';
+  var gks=Object.keys(G),volHoy=0,volSem=0,prsHoy=0,td=todayStr();
+  gks.forEach(function(gk){G[gk].exs.forEach(function(ex){volHoy+=calcVolumeDay(ex.id,td);volSem+=calcVolumeSemana(ex.id);var s=getSeriesForDay(ex.id,td);if(s){var pr=getPRForEx(ex.id);s.forEach(function(v){if(parseFloat(v)===pr&&pr!==null)prsHoy++;});}});});
+  var e;
+  if(e=document.getElementById('md-vol'))e.textContent=volHoy>0?(volHoy>=1000?Math.round(volHoy/100)/10+'k':volHoy)+' kg':'—';
+  if(e=document.getElementById('md-volsem'))e.textContent=volSem>0?Math.round(volSem/1000*10)/10+'k kg':'—';
+  if(e=document.getElementById('md-prs'))e.textContent=prsHoy>0?prsHoy:'0';
+  var g=G[cG],tot=0,dn=0;
+  if(g&&g.exs){tot=g.exs.length;g.exs.forEach(function(ex){if(exDoneToday(ex,td))dn++;});}
+  if(e=document.getElementById('md-prog'))e.textContent=dn+'/'+tot;
+  if(e=document.getElementById('md-prog-bar'))e.style.width=(tot?Math.round(dn/tot*100):0)+'%';
+}
+function exDoneToday(ex,td){
+  if(dm[ex.id+'_'+td])return true;
+  var s=getSeriesForDay(ex.id,td),n=parseSeries(ex.s).sets;
+  return !!s&&s.filter(function(v){return v!==null&&v!=='';}).length>=n;
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────────────────────────
@@ -2218,7 +2277,7 @@ function renderEj(){
     banner.innerHTML='<span style="flex:1">&#128197; Estás viendo el <b>'+dayLbl(td_ej)+'</b>. Lo que cambies se guarda en ese día.</span>'+(isCurWeek?'<button style="'+bBtn+'" onclick="setEjDay(null)">Volver a hoy</button>':'');
   } else if(refDay){
     banner=document.createElement('div');banner.style.cssText=bStyle;
-    banner.innerHTML='<span style="flex:1">Hoy aún no has apuntado nada. En gris, lo del <b>'+dayLbl(refDay)+'</b>.</span><button style="'+bBtn+'" onclick="setEjDay(\''+refDay+'\')">Editar ese día</button>';
+    banner.innerHTML='<span style="flex:1">Hoy aún no has apuntado nada. En gris, lo del <b>'+dayLbl(refDay)+'</b> — pulsa «Repetir última» para copiarlo.</span><button style="'+bBtn+'" onclick="setEjDay(\''+refDay+'\')">Editar ese día</button>';
   }
   if(banner)list.appendChild(banner);
 
@@ -2237,115 +2296,142 @@ function renderEj(){
   setTimeout(function(){drawAllMiniCharts();},80);
 }
 
+var ejOpen={};
+// Last session's sets before a date (used as grey reference)
+function lastSeriesBefore(id,date){
+  if(!ud.series||!ud.series[id])return null;
+  var ds=Object.keys(ud.series[id]).filter(function(d){return d<date;}).sort().reverse();
+  for(var i=0;i<ds.length;i++){var s=ud.series[id][ds[i]];if(s&&s.some(function(v){return v!==null&&v!==''&&!isNaN(parseFloat(v));}))return{date:ds[i],sets:s};}
+  return null;
+}
+function fmtN(v){return Math.round(parseFloat(v)*10)/10;}
 function bCard(ex,gk,td,refDay){
   if(!td)td=todayStr();
-  var ser=parseSeries(ex.s);
-  var refData=refDay?getSeriesForDay(ex.id,refDay)||[]:[];
-  var serData=getSeriesForDay(ex.id,td)||new Array(ser.sets).fill(null);
+  var today=todayStr(),ser=parseSeries(ex.s),isAbs=gk==='abdominales',u=isAbs?'reps':'kg';
+  var serData=getSeriesForDay(ex.id,td)||[];
+  var hasToday=serData.some(function(v){return v!==null&&v!=='';});
   var isDone=!!dm[ex.id+'_'+td];
   var pr=getPRForEx(ex.id);
-  var lastSess=getLastSessionForEx(ex.id);
-  // Show last session only if it's not today
-  var showLast=lastSess&&lastSess.date!==td;
+  var last=lastSeriesBefore(ex.id,td);
+  var ref=refDay&&getSeriesForDay(ex.id,refDay)?{date:refDay,sets:getSeriesForDay(ex.id,refDay)}:last;
   var isFat=isFatigue(ex.id);
-  var volSem=calcVolumeSemana(ex.id);
   var rpe=getRPE(ex.id,td);
   var note=ud['note_'+ex.id]||'';
   var rs=gRest(ex.id);
   var timerState=exTimers[ex.id]||{elapsed:0,running:false};
+  var meanToday=getMeanForDay(ex.id,td),isPR=pr&&meanToday&&meanToday>=pr;
+  var open=!!ejOpen[ex.id];
 
-  // Series HTML
-  var isAbs=gk==='abdominales';
-  var isAbs=(gk==='abdominales');
-  var serHtml='<div class="series-grid">';
-  for(var si=0;si<ser.sets;si++){
-    var val=serData[si]!==null&&serData[si]!==undefined&&serData[si]!==''?serData[si]:'';
-    var ph=refData[si]!==null&&refData[si]!==undefined&&refData[si]!==''?refData[si]:'-';
-    serHtml+='<div class="serie-row"><span class="serie-num">'+(si+1)+'</span><input class="serie-input" type="number" inputmode="decimal" step="0.5" placeholder="'+ph+'" value="'+val+'" onchange="saveSeries(\''+ex.id+'\',\''+td+'\','+si+',this.value)" onfocus="this.select()"><span class="serie-unit">'+(isAbs?'reps':'kg')+'</span></div>';
+  // Meta line: done -> what you did; otherwise series · last time · forecast
+  var meta;
+  if(isDone&&hasToday)meta='&#10003; '+serData.filter(function(v){return v!==null&&v!=='';}).map(fmtN).join(' · ')+' '+u;
+  else{
+    var bits=[ex.s];
+    if(last&&!isAbs){var lm=getMeanForDay(ex.id,last.date);if(lm!==null)bits.push('Últ. <b>'+lm+'</b>');}
+    if(!isAbs){var fc=calcForecast(ex.id);if(fc&&!fc.few&&fc.cur!==null)bits.push('<span class="fc">&#128302; '+fc.cur+'</span>');}
+    meta=bits.join(' · ');
   }
-  serHtml+='</div>';
 
-  // Stats pills — only last session and PR max
-  var statsHtml=isAbs?'':('<div class="ex-stats-row">'+
-    '<div class="esp"><div class="esp-lbl">Ultima sesion</div><div class="esp-val">'+(showLast?lastSess.val+' kg':'-')+'</div></div>'+
-    '<div class="esp"><div class="esp-lbl">PR Maximo</div><div class="esp-val gold">'+(pr||'-')+' kg</div></div>'+
-    '</div>');
-  if(isFat)statsHtml='<div style="background:rgba(204,41,54,0.1);border:1px solid rgba(204,41,54,0.25);border-radius:9px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--red2)">&#9888; Peso inferior a la ultima sesion — posible fatiga</div>'+statsHtml;
+  // Sets
+  var cols=Math.min(ser.sets,4),setsHtml='<div class="exc-sets" style="grid-template-columns:repeat('+cols+',1fr)">';
+  for(var si=0;si<Math.max(ser.sets,serData.length);si++){
+    var val=serData[si]!==null&&serData[si]!==undefined&&serData[si]!==''?serData[si]:'';
+    var ph=ref&&ref.sets[si]!==null&&ref.sets[si]!==undefined&&ref.sets[si]!==''?fmtN(ref.sets[si]):'–';
+    setsHtml+='<label class="exc-set'+(val!==''?' filled':'')+'"><span class="exc-set-n">S'+(si+1)+'</span>'+
+      '<input type="number" inputmode="decimal" step="0.5" enterkeyhint="next" placeholder="'+ph+'" value="'+val+'" data-i="'+si+'" onchange="onSetChange(\''+ex.id+'\',\''+td+'\','+si+',this)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();focusNextSet(this);}" onfocus="this.select()">'+
+      '<span class="exc-set-u">'+u+'</span></label>';
+  }
+  setsHtml+='</div>';
 
-  // Volumen sem pill
-  statsHtml+='<div class="esp" style="margin-bottom:10px"><div class="esp-lbl">Volumen semana</div><div class="esp-val '+(volSem>0?'green':'')+'"> '+(volSem>0?volSem+' kg':'-')+'</div></div>';
+  var actions='<div class="exc-actions">'+
+    '<button class="exc-btn rest" id="tb_'+ex.id+'" onclick="startRestTimer(this,\''+ex.id+'\')">&#9201; <span id="tv_'+ex.id+'">'+fmt(rs)+'</span></button>'+
+    (!hasToday&&ref?'<button class="exc-btn copy" onclick="repeatLast(\''+ex.id+'\',\''+td+'\')">&#8635; Repetir última</button>':'')+
+    '<button class="exc-btn more" onclick="toggleEjOpen(\''+ex.id+'\')">'+(open?'Menos':'Más')+'</button>'+
+  '</div>';
 
-  // RPE
+  // Extra (hidden until "Más")
   var rpeHtml='<div class="rpe-row"><span class="rpe-lbl">RPE</span><div class="rpe-btns">';
   for(var rv=1;rv<=10;rv++){rpeHtml+='<button class="rpe-btn'+(rpe===rv?' on':'')+'" data-v="'+rv+'" onclick="setRPE(\''+ex.id+'\',\''+td+'\','+rv+',this)">'+rv+'</button>';}
   rpeHtml+='</div></div>';
-
-  // Test fuerza (shown if RPE set or series filled)
-  var tf=isAbs?null:calcTestFuerza(ex.id,td,rpe);
-  var tfHtml='';
-  if(tf){tfHtml='<div class="test-fuerza" id="tf_'+ex.id+'"><div><div class="tf-label">Test de fuerza</div><div class="tf-desc">Haz <strong>'+tf.reps+' reps</strong> con <strong>'+tf.weight+' kg</strong></div><div style="font-size:11px;color:var(--mu);margin-top:2px">1RM estimado: '+tf.rm+' kg · RPE '+rpe+'</div></div></div>';}
-
-  // Exercise timer
-  var tDisp=timerState.elapsed>0?fmtTime(timerState.elapsed):'0:00';
-  var tRunning=timerState.running;
+  var tf=isAbs?null:calcTestFuerza(ex.id,td,rpe),tfHtml='';
+  if(tf){tfHtml='<div class="test-fuerza" id="tf_'+ex.id+'"><div><div class="tf-label">Test de fuerza</div><div class="tf-desc">Haz <strong>'+tf.reps+' reps</strong> con <strong>'+tf.weight+' kg</strong></div><div style="font-size:11px;color:var(--mu);margin-top:2px">1RM estimado: '+tf.rm+' kg'+(rpe?' · RPE '+rpe:'')+'</div></div></div>';}
+  var tDisp=timerState.elapsed>0?fmtTime(timerState.elapsed):'0:00',tRunning=timerState.running;
   var timerHtml='<div class="ex-timer-row">'+
-    '<button class="ex-timer-btn'+(tRunning?' running':timerState.elapsed>0?' stopped':'')+'" id="extbtn_'+ex.id+'" onclick="toggleExTimer(\''+ex.id+'\',\''+td+'\')">'+(tRunning?'&#9646;&#9646; Pausar':'▶ '+( timerState.elapsed>0?'Continuar':'Iniciar'))+'</button>'+
+    '<button class="ex-timer-btn'+(tRunning?' running':timerState.elapsed>0?' stopped':'')+'" id="extbtn_'+ex.id+'" onclick="toggleExTimer(\''+ex.id+'\',\''+td+'\')">'+(tRunning?'&#9646;&#9646; Pausar':'&#9654; '+(timerState.elapsed>0?'Continuar':'Cronómetro'))+'</button>'+
     '<div class="ex-timer-display'+(timerState.elapsed>0&&!tRunning?' stopped':'')+'" id="extdisp_'+ex.id+'">'+tDisp+'</div>'+
-    '<button class="ex-timer-reset" onclick="resetExTimer(\''+ex.id+'\',\''+td+'\')" title="Reset">&#8635;</button>'+
+    '<button class="ex-timer-reset" onclick="resetExTimer(\''+ex.id+'\',\''+td+'\')" title="Reiniciar">&#8635;</button>'+
   '</div>';
-
-  // Rest timer
-  var restHtml='<div class="rest-row">'+
-    '<button class="rest-btn" id="tb_'+ex.id+'" onclick="startRestTimer(this,\''+ex.id+'\')">&#9201; <span id="tv_'+ex.id+'">'+fmt(rs)+'</span></button>'+
-    '<input class="rest-sec-inp" type="number" inputmode="numeric" min="5" max="600" value="'+rs+'" onchange="sRest(\''+ex.id+'\',this.value)" onfocus="this.select()">'+
-    '<span class="rest-sec-lbl">s descanso</span>'+
+  var extra='<div class="exc-extra">'+
+    rpeHtml+
+    (isAbs?'':fcPillHtml(ex.id,gk))+
+    (isFat?'<div class="fc-pill" style="border-color:rgba(204,41,54,0.3);background:rgba(204,41,54,0.08);color:var(--red2)">&#9888; Por debajo de la última sesión — posible fatiga</div>':'')+
+    tfHtml+timerHtml+
+    '<div class="exc-cfg">Descanso <input type="number" inputmode="numeric" min="5" max="600" value="'+rs+'" onchange="sRest(\''+ex.id+'\',this.value)" onfocus="this.select()"> s'+(pr?'<span style="margin-left:auto">PR <b style="color:var(--gold)">'+pr+' '+u+'</b></span>':'')+'</div>'+
+    '<textarea class="note-inp" placeholder="Notas..." onchange="saveNote(\''+ex.id+'\',this.value)">'+note+'</textarea>'+
+    '<div class="exc-tools">'+
+      '<button class="exc-tool" onclick="openProgModal(\''+ex.id+'\')"><span>&#128200;</span>Progreso</button>'+
+      '<button class="exc-tool" onclick="moveEx(\''+gk+'\',\''+ex.id+'\',-1)"><span>&#8593;</span>Subir</button>'+
+      '<button class="exc-tool" onclick="moveEx(\''+gk+'\',\''+ex.id+'\',1)"><span>&#8595;</span>Bajar</button>'+
+      '<button class="exc-tool" onclick="openEditEx(\''+gk+'\',\''+ex.id+'\')"><span>&#9998;</span>Editar</button>'+
+      '<button class="exc-tool del" onclick="askDelEx(\''+gk+'\',\''+ex.id+'\')"><span>&#128465;</span>Borrar</button>'+
+    '</div>'+
   '</div>';
 
   var card=document.createElement('div');
   card.dataset.exid=ex.id;
-  card.className='excard'+(isDone?' done':'')+(pr&&getMeanForDay(ex.id,td)&&getMeanForDay(ex.id,td)>=pr?' is-pr':'')+(isFat?' fatigue':'');
+  card.className='excard'+(isDone?' done':'')+(open?' open':'')+(isPR?' is-pr':'')+(isFat?' fatigue':'');
   card.innerHTML=
-    '<div class="ex-header">'+
-      '<div class="ex-info">'+
-        '<div class="ex-name-row">'+
-          (pr&&getMeanForDay(ex.id,td)&&getMeanForDay(ex.id,td)>=pr?'<span class="pr-pill">PR</span>':'')+
-          (isFat?'<span class="fatigue-pill">Fatiga</span>':'')+
-          '<span class="ex-name">'+ex.name+'</span>'+
-        '</div>'+
-        '<div class="ex-series-lbl">'+ex.s+'</div>'+
+    '<div class="exc-head">'+
+      '<button class="exc-check" onclick="tDone(\''+ex.id+'\',\''+td+'\')" aria-label="Hecho">&#10003;</button>'+
+      '<div class="exc-title" onclick="toggleEjOpen(\''+ex.id+'\')">'+
+        '<div class="exc-name">'+(isPR?'<span class="pr-pill">PR</span>':'')+(isFat?'<span class="fatigue-pill">Fatiga</span>':'')+'<span>'+ex.name+'</span></div>'+
+        '<div class="exc-meta">'+meta+'</div>'+
       '</div>'+
-      '<div class="ex-btns">'+
-        '<button class="ib" onclick="moveEx(\''+gk+'\',\''+ex.id+'\',-1)" title="Subir">&#8593;</button>'+
-        '<button class="ib prog-btn" onclick="openProgModal(\''+ex.id+'\')" title="Progresion">&#128200;</button>'+
-        '<button class="ib" id="mup_'+ex.id+'">&uarr;</button>'+
-        '<button class="ib" id="mdn_'+ex.id+'">&darr;</button>'+
-        '<button class="ib del" onclick="askDelEx(\''+gk+'\',\''+ex.id+'\')">&#10005;</button>'+
-        '<button class="ib check'+(isDone?' done':'')+'" onclick="tDone(\''+ex.id+'\',\''+td+'\')">'+(isDone?'&#10003;':'&#9711;')+'</button>'+
-      '</div>'+
+      '<button class="exc-chev" onclick="toggleEjOpen(\''+ex.id+'\')" aria-label="Más">&#8964;</button>'+
     '</div>'+
-    statsHtml+
-    serHtml+
-    timerHtml+
-    restHtml+
-    rpeHtml+
-    tfHtml+
-    '<textarea class="note-inp" placeholder="Notas..." onchange="saveNote(\''+ex.id+'\',this.value)">'+note+'</textarea>'+
-    '<button class="save-ex-btn" onclick="saveExBtn(\''+ex.id+'\',\''+td+'\',this)">&#10003; Guardar</button>'+
-    fcPillHtml(ex.id,gk)+
-    '<div class="ex-mini-chart" id="mc_'+ex.id+'"><svg></svg></div>';
+    '<div class="exc-body">'+setsHtml+actions+extra+'</div>';
   return card;
+}
+function toggleEjOpen(id){
+  ejOpen[id]=!ejOpen[id];
+  var c=document.querySelector('.excard[data-exid="'+id+'"]');if(!c)return;
+  c.classList.toggle('open',ejOpen[id]);
+  var b=c.querySelector('.exc-btn.more');if(b)b.textContent=ejOpen[id]?'Menos':'Más';
+}
+function onSetChange(id,date,idx,el){
+  saveSeries(id,date,idx,el.value);
+  var box=el.closest('.exc-set');if(box)box.classList.toggle('filled',el.value!=='');
+  // Logging a set today starts the rest timer
+  if(el.value!==''&&date===todayStr()){var b=document.getElementById('tb_'+id);if(b)startRestTimer(b,id);}
+  var ex=fEx(id);
+  if(ex&&!dm[id+'_'+date]&&exDoneToday(ex,date)){
+    var s=getSeriesForDay(id,date),m=document.querySelector('.excard[data-exid="'+id+'"] .exc-meta');
+    if(m&&s)m.innerHTML='&#10003; '+s.filter(function(v){return v!==null&&v!=='';}).map(fmtN).join(' · ')+' kg';
+  }
+  updateMiniDash();
+}
+function focusNextSet(el){
+  var c=el.closest('.excard'),ins=c?Array.prototype.slice.call(c.querySelectorAll('.exc-set input')):[],i=ins.indexOf(el);
+  if(i>=0&&i<ins.length-1)ins[i+1].focus();else el.blur();
+}
+function repeatLast(id,date){
+  var c=document.querySelector('.excard[data-exid="'+id+'"]');if(!c)return;
+  c.querySelectorAll('.exc-set input').forEach(function(inp){var i=parseInt(inp.dataset.i);if(inp.value===''&&inp.placeholder!=='–'){inp.value=inp.placeholder;saveSeries(id,date,i,inp.value);inp.closest('.exc-set').classList.add('filled');}});
+  var b=c.querySelector('.exc-btn.copy');if(b)b.remove();
+  updateMiniDash();showToast('Series copiadas');
 }
 
 function updateTestFuerza(id,date){
   var el=document.getElementById('tf_'+id);if(!el)return;
   var rpe=getRPE(id,date),tf=calcTestFuerza(id,date,rpe);
-  if(tf){el.querySelector('.tf-desc').innerHTML='Haz <strong>'+tf.reps+' reps</strong> con <strong>'+tf.weight+' kg</strong>';el.querySelector('div:last-child').textContent='1RM estimado: '+tf.rm+' kg · RPE '+rpe;}
+  if(tf){el.querySelector('.tf-desc').innerHTML='Haz <strong>'+tf.reps+' reps</strong> con <strong>'+tf.weight+' kg</strong>';el.querySelector('.tf-desc').nextElementSibling.textContent='1RM estimado: '+tf.rm+' kg'+(rpe?' · RPE '+rpe:'');}
 }
 
 function setRPE(id,date,v,btn){
   btn.parentElement.querySelectorAll('.rpe-btn').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');saveRPE(id,date,v);
 }
-function tDone(id,date){var k=id+'_'+date;dm[k]=!dm[k];sched();renderEj();}
+function tDone(id,date){var k=id+'_'+date;dm[k]=!dm[k];if(dm[k]){ejOpen[id]=false;if(exTimers[id]){if(exTimers[id].running){clearInterval(exTimers[id].interval);exTimers[id].running=false;}if(exTimers[id].elapsed>0)saveExTime(id,date,exTimers[id].elapsed);}vibrate1();}sched();renderEj();}
+function vibrate1(){try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}}
 function saveExBtn(id,date,btn){
   var card=btn.closest('.excard');card.querySelectorAll('.serie-input').forEach(function(inp,i){saveSeries(id,date,i,inp.value);});
   // Stop and save exercise timer
@@ -2374,13 +2460,13 @@ function toggleExTimer(exId,date){
   }
   // Re-render button
   var btn=document.getElementById('extbtn_'+exId);var disp=document.getElementById('extdisp_'+exId);
-  if(btn){btn.className='ex-timer-btn'+(t.running?' running':t.elapsed>0?' stopped':'');btn.textContent=t.running?'⏸ Pausar':'▶ '+(t.elapsed>0?'Continuar':'Iniciar');}
+  if(btn){btn.className='ex-timer-btn'+(t.running?' running':t.elapsed>0?' stopped':'');btn.textContent=t.running?'⏸ Pausar':'▶ '+(t.elapsed>0?'Continuar':'Cronómetro');}
   if(disp){disp.className='ex-timer-display'+(t.elapsed>0&&!t.running?' stopped':'');}
 }
 function resetExTimer(exId,date){
   if(exTimers[exId]){clearInterval(exTimers[exId].interval);exTimers[exId]={elapsed:0,running:false,interval:null};}
   var disp=document.getElementById('extdisp_'+exId);if(disp)disp.textContent='0:00';
-  var btn=document.getElementById('extbtn_'+exId);if(btn){btn.className='ex-timer-btn';btn.textContent='&#9654; Iniciar';}
+  var btn=document.getElementById('extbtn_'+exId);if(btn){btn.className='ex-timer-btn';btn.textContent='▶ Cronómetro';}
 }
 
 // ── PENDIENTE SEMANA ──────────────────────────────────────────────────────────
@@ -3009,7 +3095,7 @@ function startRestTimer(btn,exId){
   var gt=document.getElementById('gtimer');gt.classList.add('on');gt.classList.remove('done');
   document.querySelectorAll('[id^="tb_"]').forEach(function(b){b.style.borderColor='';});
   btn.style.borderColor='var(--or)';
-  function tick(){tSec--;var str=fmt(tSec);gt.textContent='&#9201; '+str;var tv=document.getElementById('tv_'+exId);if(tv)tv.textContent=str;if(tSec<=0){clearInterval(tInt);tRun=false;gt.textContent='&#10003; Listo!';gt.classList.add('done');btn.style.borderColor='var(--gr)';playBeep();vibrate();setTimeout(function(){gt.classList.remove('on','done');rTD();},4000);}}
+  function tick(){tSec--;var str=fmt(tSec);gt.textContent='\u23F1 '+str;var tv=document.getElementById('tv_'+exId);if(tv)tv.textContent=str;if(tSec<=0){clearInterval(tInt);tRun=false;gt.textContent='\u2713 ¡Listo!';gt.classList.add('done');btn.style.borderColor='var(--gr)';playBeep();vibrate();setTimeout(function(){gt.classList.remove('on','done');rTD();},4000);}}
   tInt=setInterval(tick,1000);
 }
 function timerTap(){if(tInt)clearInterval(tInt);tRun=false;document.getElementById('gtimer').classList.remove('on','done');rTD();}
