@@ -63,11 +63,11 @@ if (params.access_token) {
     session.user = u;
     try { localStorage.setItem('gym_session', JSON.stringify(session)); } catch(e) {}
     setMsg('Cuenta confirmada. Redirigiendo...', true);
-    setTimeout(function() { window.location.href = '/'; }, 1500);
+    setTimeout(function() { window.location.href = '../../'; }, 1500);
   }).catch(function() {
     try { localStorage.setItem('gym_session', JSON.stringify(session)); } catch(e) {}
     setMsg('Cuenta confirmada. Redirigiendo...', true);
-    setTimeout(function() { window.location.href = '/'; }, 1500);
+    setTimeout(function() { window.location.href = '../../'; }, 1500);
   });
 }
 // Token hash flow
@@ -82,19 +82,19 @@ else if (params.token_hash || params.token) {
     if (res.access_token) {
       try { localStorage.setItem('gym_session', JSON.stringify(res)); } catch(e) {}
       setMsg('Cuenta confirmada. Redirigiendo...', true);
-      setTimeout(function() { window.location.href = '/'; }, 1500);
+      setTimeout(function() { window.location.href = '../../'; }, 1500);
     } else {
       setMsg('Error al confirmar. Intenta entrar directamente.', false);
-      setTimeout(function() { window.location.href = '/'; }, 2500);
+      setTimeout(function() { window.location.href = '../../'; }, 2500);
     }
   }).catch(function() {
     setMsg('Error de conexion. Redirigiendo...', false);
-    setTimeout(function() { window.location.href = '/'; }, 2500);
+    setTimeout(function() { window.location.href = '../../'; }, 2500);
   });
 }
 else {
   setMsg('Redirigiendo...', true);
-  setTimeout(function() { window.location.href = '/'; }, 1000);
+  setTimeout(function() { window.location.href = '../../'; }, 1000);
 }
 </script>
 </body>
