@@ -682,7 +682,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
     <!-- Mini dashboard -->
     <div class="mini-dash" id="mini-dash">
       <div class="md-strip">
-        <div class="md-row"><span><b id="md-prog">0/0</b> hechos hoy</span><span>Hoy <b id="md-vol">—</b></span><span>Semana <b id="md-volsem">—</b></span><span>&#127942; <b id="md-prs">—</b></span></div>
+        <div class="md-row"><span><b id="md-prog">0/0</b><span id="md-prog-lbl"> hechos hoy</span></span><span>Hoy <b id="md-vol">—</b></span><span>Semana <b id="md-volsem">—</b></span><span>&#127942; <b id="md-prs">—</b></span></div>
         <div class="md-prog"><div class="md-prog-bar" id="md-prog-bar"></div></div>
       </div>
     </div>
@@ -884,7 +884,7 @@ var DC=[{id:'c1',name:'Correr',icon:'&#127939;'},{id:'c2',name:'Bici',icon:'&#12
 
 var G={},CARDIO=[],ud={},dm={};
 var cG='pecho',cW=47,cY=2025,cM='dash',cDay='';
-var ejViewDay=null,dbId=null,stOut=null,loaded=false,syncing=null,syncAgain=false,syncFails=0,refreshing=null;
+var ejViewDay=null,ejShownDay=null,dbId=null,stOut=null,loaded=false,syncing=null,syncAgain=false,syncFails=0,refreshing=null;
 var tSec=0,tInt=null,tRun=false;
 var mExG=null,mExId=null;
 var audioCtx=null;
@@ -1543,9 +1543,10 @@ function updateMiniDash(){
   if(e=document.getElementById('md-vol'))e.textContent=volHoy>0?(volHoy>=1000?Math.round(volHoy/100)/10+'k':volHoy)+' kg':'—';
   if(e=document.getElementById('md-volsem'))e.textContent=volSem>0?Math.round(volSem/1000*10)/10+'k kg':'—';
   if(e=document.getElementById('md-prs'))e.textContent=prsHoy>0?prsHoy:'0';
-  var g=G[cG],tot=0,dn=0;
-  if(g&&g.exs){tot=g.exs.length;g.exs.forEach(function(ex){if(exDoneToday(ex,td))dn++;});}
+  var g=G[cG],tot=0,dn=0,sd=ejShownDay||td;
+  if(g&&g.exs){tot=g.exs.length;g.exs.forEach(function(ex){if(exDoneToday(ex,sd))dn++;});}
   if(e=document.getElementById('md-prog'))e.textContent=dn+'/'+tot;
+  if(e=document.getElementById('md-prog-lbl'))e.textContent=sd===td?' hechos hoy':' hechos el '+new Date(sd+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric'});
   if(e=document.getElementById('md-prog-bar'))e.style.width=(tot?Math.round(dn/tot*100):0)+'%';
 }
 function exDoneToday(ex,td){
@@ -2265,30 +2266,36 @@ function renderEj(){
   var wdays=getWeekDaysArr(cW,cY),today=todayStr();
   function grpHas(d){var h=false;if(G[cG])G[cG].exs.forEach(function(ex){if(getSeriesForDay(ex.id,d))h=true;});return h;}
   var td_ej=today,refDay=null,isCurWeek=wdays.indexOf(today)>=0;
+  if(isCurWeek){for(var wi2=wdays.indexOf(today)-1;wi2>=0;wi2--){if(grpHas(wdays[wi2])){refDay=wdays[wi2];break;}}}
   if(ejViewDay&&wdays.indexOf(ejViewDay)>=0)td_ej=ejViewDay;
   else if(!isCurWeek){
     td_ej=wdays[0];
     for(var wi=wdays.length-1;wi>=0;wi--){if(grpHas(wdays[wi])){td_ej=wdays[wi];break;}}
-  } else if(!grpHas(today)){
-    // Today is empty: show last session of this group this week as grey reference
-    for(var wi2=wdays.indexOf(today)-1;wi2>=0;wi2--){if(grpHas(wdays[wi2])){refDay=wdays[wi2];break;}}
+  } else if(!grpHas(today)&&refDay){
+    // Group already trained earlier this week: show that session as done
+    td_ej=refDay;
   }
+  ejShownDay=td_ej;
   function dayLbl(d){return new Date(d+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});}
   var bStyle='background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:var(--gold);font-weight:600;display:flex;align-items:center;gap:8px';
   var bBtn='flex-shrink:0;background:var(--s2);border:1px solid var(--s4);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer';
   var banner=null;
-  if(td_ej!==today){
+  if(td_ej!==today&&isCurWeek&&!ejViewDay){
+    banner=document.createElement('div');banner.style.cssText=bStyle.replace('rgba(201,168,76,0.12)','rgba(34,197,94,0.08)').replace('rgba(201,168,76,0.3)','rgba(34,197,94,0.35)').replace('color:var(--gold)','color:var(--gr)');
+    banner.innerHTML='<span style="flex:1">&#10003; '+g.name+' entrenado el <b>'+dayLbl(td_ej)+'</b>. Si lo corriges, se guarda en ese día.</span><button style="'+bBtn+'" onclick="setEjDay(\''+today+'\')">+ Nueva sesión hoy</button>';
+  } else if(td_ej!==today){
     banner=document.createElement('div');banner.style.cssText=bStyle;
-    banner.innerHTML='<span style="flex:1">&#128197; Estás viendo el <b>'+dayLbl(td_ej)+'</b>. Lo que cambies se guarda en ese día.</span>'+(isCurWeek?'<button style="'+bBtn+'" onclick="setEjDay(null)">Volver a hoy</button>':'');
-  } else if(refDay){
+    banner.innerHTML='<span style="flex:1">&#128197; Estás viendo el <b>'+dayLbl(td_ej)+'</b>. Lo que cambies se guarda en ese día.</span>'+(isCurWeek?'<button style="'+bBtn+'" onclick="setEjDay(null)">Volver</button>':'');
+  } else if(refDay&&!grpHas(today)){
     banner=document.createElement('div');banner.style.cssText=bStyle;
-    banner.innerHTML='<span style="flex:1">Hoy aún no has apuntado nada. En gris, lo del <b>'+dayLbl(refDay)+'</b> — pulsa «Repetir última» para copiarlo.</span><button style="'+bBtn+'" onclick="setEjDay(\''+refDay+'\')">Editar ese día</button>';
+    banner.innerHTML='<span style="flex:1">Sesión nueva de hoy. En gris, lo del <b>'+dayLbl(refDay)+'</b>.</span><button style="'+bBtn+'" onclick="setEjDay(null)">Ver ese día</button>';
   }
   if(banner)list.appendChild(banner);
+  updateMiniDash();
 
   if(!g.exs||g.exs.length===0){list.innerHTML='<p style="color:var(--mu3);padding:20px;text-align:center">Sin ejercicios</p>';return;}
   g.exs.forEach(function(ex){
-    var card=bCard(ex,cG,td_ej,refDay);
+    var card=bCard(ex,cG,td_ej,td_ej===today?refDay:null);
     list.appendChild(card);
     var mup=card.querySelector('#mup_'+ex.id);
     var mdn=card.querySelector('#mdn_'+ex.id);
@@ -2315,7 +2322,7 @@ function bCard(ex,gk,td,refDay){
   var today=todayStr(),ser=parseSeries(ex.s),isAbs=gk==='abdominales',u=isAbs?'reps':'kg';
   var serData=getSeriesForDay(ex.id,td)||[];
   var hasToday=serData.some(function(v){return v!==null&&v!=='';});
-  var isDone=!!dm[ex.id+'_'+td];
+  var isDone=!!dm[ex.id+'_'+td]||exDoneToday(ex,td);
   var pr=getPRForEx(ex.id);
   var last=lastSeriesBefore(ex.id,td);
   var ref=refDay&&getSeriesForDay(ex.id,refDay)?{date:refDay,sets:getSeriesForDay(ex.id,refDay)}:last;
@@ -2435,7 +2442,7 @@ function updateTestFuerza(id,date){
 function setRPE(id,date,v,btn){
   btn.parentElement.querySelectorAll('.rpe-btn').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');saveRPE(id,date,v);
 }
-function tDone(id,date){var k=id+'_'+date;dm[k]=!dm[k];if(dm[k]){ejOpen[id]=false;if(exTimers[id]){if(exTimers[id].running){clearInterval(exTimers[id].interval);exTimers[id].running=false;}if(exTimers[id].elapsed>0)saveExTime(id,date,exTimers[id].elapsed);}vibrate1();}sched();renderEj();}
+function tDone(id,date){var k=id+'_'+date,ex=fEx(id);if(!dm[k]&&ex&&exDoneToday(ex,date)){ejOpen[id]=!ejOpen[id];renderEj();return;}dm[k]=!dm[k];if(dm[k]){ejOpen[id]=false;if(exTimers[id]){if(exTimers[id].running){clearInterval(exTimers[id].interval);exTimers[id].running=false;}if(exTimers[id].elapsed>0)saveExTime(id,date,exTimers[id].elapsed);}vibrate1();}sched();renderEj();}
 function vibrate1(){try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}}
 function saveExBtn(id,date,btn){
   var card=btn.closest('.excard');card.querySelectorAll('.serie-input').forEach(function(inp,i){saveSeries(id,date,i,inp.value);});
