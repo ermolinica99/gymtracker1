@@ -916,7 +916,7 @@ function navTo(screen){
   closeSidebar();
   goMain(screen);
 }
-var curScreen = 'home';
+var curScreen = 'home',lastRenderDay='';
 
 // ── HOME RENDER ────────────────────────────────────────────────────────────────
 function renderHome(){
@@ -1435,7 +1435,7 @@ window.addEventListener('offline',function(){
 
 // Push pending changes when the app goes to background or is closed
 function flushSync(){if(pendingSync&&_s&&loaded&&isOnline)syncNow(true);}
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushSync();else if(_s&&loaded&&(pendingSync||isDirty()))syncNow();});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushSync();else{if(_s&&loaded&&(pendingSync||isDirty()))syncNow();if(_s&&loaded&&curScreen&&lastRenderDay!==todayStr())goMain(curScreen);}});
 window.addEventListener('pagehide',flushSync);
 
 function loadOfflineBackup(){
@@ -1465,10 +1465,7 @@ function startApp(){
   var userBtn=document.getElementById('user-btn');if(userBtn)userBtn.textContent=name;
   document.getElementById('auth-scr').style.display='none';
   document.getElementById('main').classList.add('on');
-  var now=new Date();cY=now.getFullYear();
-  var j=new Date(cY,0,4),d=j.getDay()||7;
-  cW=Math.floor((now-j+(d-1)*86400000)/(7*86400000))+1;
-  if(cW<1)cW=1;if(cW>52)cW=52;
+  resetToCurrentWeek();
   cDay=todayStr();
   alimDay=todayStr();
   setSB('spin');loaded=false;
@@ -1487,9 +1484,17 @@ function startApp(){
   });
 }
 
+// The week arrows on the gym screen change cW/cY; every other screen
+// (Inicio, Dashboard, racha, informes) must use the real current week.
+function resetToCurrentWeek(){
+  var now=new Date();cY=now.getFullYear();
+  var j=new Date(cY,0,4),d=j.getDay()||7;
+  cW=Math.floor((now-j+(d-1)*86400000)/(7*86400000))+1;
+  if(cW<1)cW=1;if(cW>52)cW=52;
+}
 // ── NAV ────────────────────────────────────────────────────────────────────────
 function goMain(s,btn){
-  cM=s;curScreen=s;
+  cM=s;curScreen=s;resetToCurrentWeek();ejViewDay=null;lastRenderDay=todayStr();cDay=lastRenderDay;
   if(btn)document.querySelectorAll('.main-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
   document.querySelectorAll('#main .scr').forEach(function(b){b.classList.remove('on');});
