@@ -342,6 +342,41 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .cal-month-row:last-child{border-bottom:none}
 .cal-month-lbl{font-size:13px;color:var(--mu)}
 .cal-month-time{font-size:14px;font-weight:700;color:var(--gold)}
+/* HISTORIAL */
+.hist-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hist-nav button{width:38px;height:38px;border-radius:10px;border:1px solid var(--s4);background:var(--s2);color:var(--tx);font-size:18px;cursor:pointer;font-family:var(--font)}
+.hist-nav button:disabled{opacity:0.3}
+.hist-month{font-size:17px;font-weight:800}
+.hist-sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.hist-st{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r);padding:12px}
+.hist-st-v{font-size:22px;font-weight:900}
+.hist-st-l{font-size:10px;color:var(--mu3);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px}
+.hist-st-d{font-size:11px;font-weight:700;margin-top:4px}
+.hist-up{color:var(--gr)}.hist-dn{color:var(--red2)}.hist-eq{color:var(--mu3)}
+.hist-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.hist-wd{font-size:10px;color:var(--mu3);text-align:center;padding-bottom:4px;font-weight:700}
+.hist-d{aspect-ratio:1;border-radius:10px;background:var(--s2);border:1px solid var(--s3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mu3);font-family:var(--font);padding:0}
+.hist-d.has{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.35);color:var(--tx)}
+.hist-d.today{border-color:var(--gold)}
+.hist-d.sel{background:linear-gradient(135deg,var(--gold),#a07830);color:#000;border-color:transparent}
+.hist-d.empty{visibility:hidden}
+.hist-dots{display:flex;gap:2px;height:5px}
+.hist-dot{width:5px;height:5px;border-radius:50%}
+.hist-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11px;color:var(--mu3)}
+.hist-legend span{display:inline-flex;align-items:center;gap:4px}
+.hist-grp{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin:12px 0 6px;display:flex;align-items:center;gap:6px}
+.hist-ex{background:var(--s2);border-radius:10px;padding:9px 11px;margin-bottom:5px}
+.hist-ex-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hist-ex-nm{font-size:13px;font-weight:600}
+.hist-ex-meta{font-size:11px;color:var(--mu3)}
+.hist-sets{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.hist-set{font-size:12px;font-weight:700;background:var(--s3);border-radius:6px;padding:3px 7px}
+.hist-set.pr{background:rgba(201,168,76,0.2);color:var(--gold2)}
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--s3);font-size:13px}
+.hist-row:last-child{border-bottom:none}
+.hist-empty{text-align:center;padding:18px;color:var(--mu);font-size:13px}
+.home-week-day{cursor:pointer}
+
 
 /* STATS */
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
@@ -617,6 +652,13 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
     <div class="scrl" id="stats-content"></div>
   </div>
 
+  <!-- HISTORIAL -->
+  <div class="scr" id="scr-hist">
+    <div class="hdr">
+      <button class="hamburger" onclick="openSidebar()">☰</button><div class="hdr-info"><h1>Historial</h1><p>Consulta cualquier dia</p></div></div>
+    <div class="scrl" id="hist-content"></div>
+  </div>
+
   <!-- ALIMENTACION -->
   <div class="scr" id="scr-alim">
     <div class="hdr">
@@ -830,9 +872,10 @@ function renderHome(){
 
   // Last weight
   var lastW='—';
-  if(ud.weights){
-    var wDates=Object.keys(ud.weights).sort().reverse();
-    if(wDates.length>0)lastW=ud.weights[wDates[0]].toFixed(1)+' kg';
+  var wSrc=ud.bodyWeight&&Object.keys(ud.bodyWeight).length?ud.bodyWeight:ud.weights;
+  if(wSrc){
+    var wDates=Object.keys(wSrc).sort().reverse();
+    if(wDates.length>0)lastW=parseFloat(wSrc[wDates[0]]).toFixed(1)+' kg';
   }
 
   // Today kcal (only confirmed franjas)
@@ -867,7 +910,7 @@ function renderHome(){
     var hasTrain=allDates.includes(d);
     var isToday=d===today;
     var cls='home-week-day'+(hasTrain?' done':'')+(isToday?' today':'');
-    weekHtml+='<div class="'+cls+'"><div class="home-week-lbl">'+dayNames[i]+'</div><div class="home-week-ic">'+(hasTrain?'✅':isToday?'⬜':'·')+'</div></div>';
+    weekHtml+='<div class="'+cls+'" onclick="openHistDay(\''+d+'\')"><div class="home-week-lbl">'+dayNames[i]+'</div><div class="home-week-ic">'+(hasTrain?'✅':isToday?'⬜':'·')+'</div></div>';
   });
   weekHtml+='</div>';
 
@@ -888,6 +931,7 @@ function renderHome(){
       makeHomeCard('peso','⚖️','Peso corporal',lastW,'Último registro','peso')+
       makeHomeCard('fotos','📷','Fotos',photoStr,'Progreso visual','fotos')+
       makeHomeCard('obj','🎯','Objetivos',goalsStr,'Metas activas','obj')+
+      makeHomeCard('hist','📅','Historial',(function(){var n=new Date(),d=histMonthStats(n.getFullYear(),n.getMonth()).days;return d+' día'+(d===1?'':'s')+' este mes';})(),'Calendario y resumen','hist')+
       makeHomeCard('stats','📈','Estadísticas','Ver todo','Análisis completo','stats')+
     '</div>'+
     '<div style="height:20px"></div>';
@@ -1369,7 +1413,7 @@ function goMain(s,btn){
   if(btn)document.querySelectorAll('.main-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
   document.querySelectorAll('#main .scr').forEach(function(b){b.classList.remove('on');});
-  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats'};
+  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats',hist:'scr-hist'};
   document.getElementById(ids[s]).classList.add('on');
   if(s==='home')renderHome();
   else if(s==='dash')renderDash();
@@ -1386,6 +1430,7 @@ function goMain(s,btn){
   else if(s==='obj')renderObj();
   else if(s==='fotos')renderFotos();
   else if(s==='alim'){renderAlim();}
+  else if(s==='hist')renderHist();
   else renderStats();
 }
 function goGroup(g,btn){
@@ -1804,6 +1849,160 @@ function renderCalBody(){
     });
   }
 }
+
+// ── HISTORIAL ──────────────────────────────────────────────────────────────────
+var histY=null,histM=null,histSel=null;
+var HIST_COLORS={pecho:'#e63946',piernas:'#3b82f6',espalda:'#22c55e',brazos:'#8b5cf6',abdominales:'#f97316',cardio:'#06b6d4'};
+function histColor(gk){return HIST_COLORS[gk]||'#c9a84c';}
+function histMonthLabel(d){var t=d.toLocaleDateString('es-ES',{month:'long',year:'numeric'});return t.charAt(0).toUpperCase()+t.slice(1);}
+function histDs(y,m,d){return y+'-'+(m<9?'0':'')+(m+1)+'-'+(d<10?'0':'')+d;}
+function histMonthDays(y,m){var n=new Date(y,m+1,0).getDate(),a=[];for(var d=1;d<=n;d++)a.push(histDs(y,m,d));return a;}
+function histVals(id,date){var s=getSeriesForDay(id,date);return s?s.map(parseFloat).filter(function(v){return !isNaN(v)&&v>0;}):[];}
+function histKcal(date){
+  var k=0;if(!ud.alim||!ud.alim[date])return 0;
+  ['desayuno','almuerzo','comida','cena'].forEach(function(fk){if(ud.alim[date][fk+'_done']&&ALIM[fk]){var opt=ALIM[fk].opciones[ud.alim[date][fk+'_opt']||0];if(opt)k+=calcOpcionKcal(opt);}});
+  return k;
+}
+// Everything recorded on one day
+function histDay(date){
+  var r={groups:{},cardio:[],vol:0,secs:0,any:false};
+  Object.keys(G).forEach(function(gk){G[gk].exs.forEach(function(ex){
+    var vals=histVals(ex.id,date);
+    var t=ud.exTimes&&ud.exTimes[date]?ud.exTimes[date][ex.id]||0:0;
+    if(!vals.length&&!dm[ex.id+'_'+date])return;
+    if(!r.groups[gk])r.groups[gk]=[];
+    r.groups[gk].push({ex:ex,vals:vals,rpe:getRPE(ex.id,date),secs:t});
+    r.vol+=calcVolumeDay(ex.id,date);r.secs+=t;r.any=true;
+  });});
+  (CARDIO||[]).forEach(function(ac){
+    var min=parseFloat(ud['cardio_'+ac.id+'_'+date+'_min']||0),km=parseFloat(ud['cardio_'+ac.id+'_'+date+'_km']||0);
+    if(min>0||km>0){r.cardio.push({ac:ac,min:min,km:km});r.any=true;}
+  });
+  r.bw=ud.bodyWeight?ud.bodyWeight[date]:null;
+  r.kcal=histKcal(date);
+  return r;
+}
+// Totals for a month
+function histMonthStats(y,m){
+  var days=histMonthDays(y,m),first=days[0],st={days:0,vol:0,cmin:0,ckm:0,sessions:0,byGroup:{},prs:[],bwFirst:null,bwLast:null,ex:{}};
+  days.forEach(function(d){
+    var r=histDay(d);
+    if(r.any)st.days++;
+    st.vol+=r.vol;
+    Object.keys(r.groups).forEach(function(gk){st.byGroup[gk]=(st.byGroup[gk]||0)+1;st.sessions+=r.groups[gk].length;
+      r.groups[gk].forEach(function(e){if(!e.vals.length)return;var mean=e.vals.reduce(function(a,b){return a+b;},0)/e.vals.length,mx=Math.max.apply(null,e.vals);
+        var x=st.ex[e.ex.id]||(st.ex[e.ex.id]={ex:e.ex,gk:gk,first:mean,last:mean,max:mx,n:0});x.last=mean;x.max=Math.max(x.max,mx);x.n++;});});
+    r.cardio.forEach(function(c){st.cmin+=c.min;st.ckm+=c.km;});
+    if(r.bw){if(st.bwFirst===null)st.bwFirst=r.bw;st.bwLast=r.bw;}
+  });
+  // A record = the month's best beats everything logged before the month
+  Object.keys(st.ex).forEach(function(id){
+    var prev=-Infinity;if(ud.series&&ud.series[id])Object.keys(ud.series[id]).forEach(function(d){if(d<first)histVals(id,d).forEach(function(v){if(v>prev)prev=v;});});
+    if(prev>-Infinity&&st.ex[id].max>prev)st.prs.push({ex:st.ex[id].ex,val:st.ex[id].max,prev:prev});
+  });
+  return st;
+}
+function histDelta(cur,prev,unit,inv){
+  if(prev===null||prev===undefined||(!prev&&!cur))return '<div class="hist-st-d hist-eq">&nbsp;</div>';
+  var d=Math.round((cur-prev)*10)/10;
+  var cls=d===0?'hist-eq':((d>0)!==!!inv?'hist-up':'hist-dn');
+  return '<div class="hist-st-d '+cls+'">'+(d>0?'▲ +':d<0?'▼ ':'= ')+d+(unit||'')+' vs mes ant.</div>';
+}
+function histKm(v){return Math.round(v*10)/10;}
+function renderHist(){
+  var el=document.getElementById('hist-content');if(!el)return;
+  var now=new Date();
+  if(histY===null){histY=now.getFullYear();histM=now.getMonth();}
+  var td=todayStr(),isCur=histY===now.getFullYear()&&histM===now.getMonth();
+  var py=histM===0?histY-1:histY,pm=histM===0?11:histM-1;
+  var st=histMonthStats(histY,histM),pst=histMonthStats(py,pm);
+  var h='';
+  h+='<div class="hist-nav"><button onclick="chHistMonth(-1)">&#8249;</button><div class="hist-month">'+histMonthLabel(new Date(histY,histM,1))+'</div><button onclick="chHistMonth(1)"'+(isCur?' disabled':'')+'>&#8250;</button></div>';
+
+  // Month summary
+  var bwTxt='—',bwD='<div class="hist-st-d hist-eq">&nbsp;</div>';
+  if(st.bwLast!==null){bwTxt=st.bwLast+' kg';if(st.bwFirst!==st.bwLast){var bd=Math.round((st.bwLast-st.bwFirst)*10)/10;bwD='<div class="hist-st-d hist-eq">'+(bd>0?'+':'')+bd+' kg en el mes</div>';}}
+  h+='<div class="hist-sum">'+
+    '<div class="hist-st"><div class="hist-st-v gold-text">'+st.days+'</div><div class="hist-st-l">Dias entrenados</div>'+histDelta(st.days,pst.days)+'</div>'+
+    '<div class="hist-st"><div class="hist-st-v">'+(st.vol>=1000?Math.round(st.vol/100)/10+'k':st.vol)+'</div><div class="hist-st-l">Kg levantados</div>'+histDelta(Math.round(st.vol/100)/10,Math.round(pst.vol/100)/10,'k')+'</div>'+
+    '<div class="hist-st"><div class="hist-st-v" style="color:var(--gold2)">'+st.prs.length+'</div><div class="hist-st-l">Records del mes</div>'+histDelta(st.prs.length,pst.prs.length)+'</div>'+
+    '<div class="hist-st"><div class="hist-st-v">'+Math.round(st.cmin)+'<span style="font-size:12px"> min</span></div><div class="hist-st-l">Cardio'+(st.ckm?' · '+histKm(st.ckm)+' km':'')+'</div>'+histDelta(Math.round(st.cmin),Math.round(pst.cmin),' min')+'</div>'+
+    '<div class="hist-st" style="grid-column:1/-1"><div class="hist-st-v">'+bwTxt+'</div><div class="hist-st-l">Peso corporal</div>'+bwD+'</div>'+
+  '</div>';
+
+  // Calendar
+  var first=new Date(histY,histM,1),off=(first.getDay()+6)%7,days=histMonthDays(histY,histM);
+  var cal='<div class="dash-card"><div class="hist-cal">';
+  ['L','M','X','J','V','S','D'].forEach(function(w){cal+='<div class="hist-wd">'+w+'</div>';});
+  for(var i=0;i<off;i++)cal+='<div class="hist-d empty"></div>';
+  var used={};
+  days.forEach(function(d,i){
+    var r=histDay(d),dots='';
+    Object.keys(r.groups).forEach(function(gk){used[gk]=1;dots+='<span class="hist-dot" style="background:'+histColor(gk)+'"></span>';});
+    if(r.cardio.length){used.cardio=1;dots+='<span class="hist-dot" style="background:'+histColor('cardio')+'"></span>';}
+    var cls='hist-d'+(r.any?' has':'')+(d===td?' today':'')+(d===histSel?' sel':'');
+    cal+='<button class="'+cls+'" onclick="selHistDay(\''+d+'\')"'+(d>td?' disabled':'')+'><span>'+(i+1)+'</span><span class="hist-dots">'+dots+'</span></button>';
+  });
+  cal+='</div>';
+  var leg=Object.keys(used);
+  if(leg.length){cal+='<div class="hist-legend">';leg.forEach(function(gk){cal+='<span><span class="hist-dot" style="background:'+histColor(gk)+'"></span>'+(gk==='cardio'?'Cardio':(G[gk]?G[gk].name:gk))+'</span>';});cal+='</div>';}
+  cal+='</div>';
+  h+=cal;
+
+  // Selected day
+  h+='<div class="dash-card" id="hist-day">'+histDayHtml(histSel)+'</div>';
+
+  // Progress per exercise this month
+  var exs=Object.keys(st.ex).map(function(k){return st.ex[k];});
+  h+='<div class="dash-card"><div class="dash-card-title">Progreso del mes por ejercicio</div>';
+  if(!exs.length)h+='<div class="hist-empty">Sin series registradas este mes</div>';
+  else{
+    var prIds={};st.prs.forEach(function(p){prIds[p.ex.id]=1;});
+    exs.sort(function(a,b){return (b.last-b.first)-(a.last-a.first);});
+    exs.forEach(function(x){
+      var d=Math.round((x.last-x.first)*10)/10,bc=d>0?'bdg-up':d<0?'bdg-dn':'bdg-sm';
+      h+='<div class="hist-row"><div><div class="hist-ex-nm"><span class="hist-dot" style="display:inline-block;margin-right:6px;background:'+histColor(x.gk)+'"></span>'+x.ex.name+(prIds[x.ex.id]?' &#127942;':'')+'</div><div class="hist-ex-meta">'+x.n+' sesion'+(x.n===1?'':'es')+' · '+Math.round(x.first*10)/10+' → '+Math.round(x.last*10)/10+' kg · max '+x.max+' kg</div></div><span class="bdg '+bc+'">'+(d>0?'+':'')+d+' kg</span></div>';
+    });
+  }
+  h+='</div>';
+
+  // Records
+  if(st.prs.length){
+    h+='<div class="dash-card"><div class="dash-card-title">Records del mes &#127942;</div>';
+    st.prs.forEach(function(p){h+='<div class="hist-row"><span class="hist-ex-nm">'+p.ex.name+'</span><span><span class="hist-ex-meta">antes '+p.prev+' kg → </span><b class="gold-text">'+p.val+' kg</b></span></div>';});
+    h+='</div>';
+  }
+  h+='<div style="height:20px"></div>';
+  el.innerHTML=h;
+}
+function histDayHtml(date){
+  if(!date)return '<div class="hist-empty">Toca un dia del calendario para ver lo que hiciste</div>';
+  var r=histDay(date),h='<div class="dash-card-title" style="text-transform:none;font-size:14px;color:var(--tx)">'+fmtShort(date)+'</div>';
+  if(!r.any&&!r.bw&&!r.kcal)return h+'<div class="hist-empty">Nada registrado este dia</div>';
+  var meta=[];if(r.vol)meta.push(r.vol+' kg de volumen');if(r.secs)meta.push(fmtMin(r.secs)+' entrenando');if(r.bw)meta.push('&#9878;&#65039; '+r.bw+' kg');if(r.kcal)meta.push('&#127869;&#65039; '+r.kcal+' kcal');
+  if(meta.length)h+='<div class="hist-ex-meta" style="margin-top:-6px">'+meta.join(' · ')+'</div>';
+  Object.keys(r.groups).forEach(function(gk){
+    h+='<div class="hist-grp" style="color:'+histColor(gk)+'"><span class="hist-dot" style="background:'+histColor(gk)+'"></span>'+(G[gk]?G[gk].name:gk)+'</div>';
+    r.groups[gk].forEach(function(e){
+      // Best weight up to (and including) that day, to flag records set on it
+      var prevMax=-Infinity;if(ud.series&&ud.series[e.ex.id])Object.keys(ud.series[e.ex.id]).forEach(function(d){if(d<date)histVals(e.ex.id,d).forEach(function(v){if(v>prevMax)prevMax=v;});});
+      var mean=e.vals.length?Math.round(e.vals.reduce(function(a,b){return a+b;},0)/e.vals.length*10)/10:null;
+      var m=[];if(mean!==null)m.push('media '+mean+' kg');if(e.rpe)m.push('RPE '+e.rpe);if(e.secs)m.push(fmtMin(e.secs));
+      h+='<div class="hist-ex"><div class="hist-ex-top"><span class="hist-ex-nm">'+e.ex.name+'</span><span class="hist-ex-meta">'+m.join(' · ')+'</span></div>';
+      if(e.vals.length){h+='<div class="hist-sets">';e.vals.forEach(function(v){h+='<span class="hist-set'+(prevMax>-Infinity&&v>prevMax?' pr':'')+'">'+v+'</span>';});h+='<span class="hist-ex-meta" style="align-self:center">kg × '+parseSeries(e.ex.s).reps+'</span></div>';}
+      else h+='<div class="hist-ex-meta" style="margin-top:4px">Marcado como hecho</div>';
+      h+='</div>';
+    });
+  });
+  if(r.cardio.length){
+    h+='<div class="hist-grp" style="color:'+histColor('cardio')+'"><span class="hist-dot" style="background:'+histColor('cardio')+'"></span>Cardio</div>';
+    r.cardio.forEach(function(c){h+='<div class="hist-ex"><div class="hist-ex-top"><span class="hist-ex-nm">'+(c.ac.icon||'')+' '+c.ac.name+'</span><span class="hist-ex-meta">'+(c.min?c.min+' min':'')+(c.min&&c.km?' · ':'')+(c.km?c.km+' km':'')+'</span></div></div>';});
+  }
+  return h;
+}
+function selHistDay(d){histSel=histSel===d?null:d;renderHist();var el=document.getElementById('hist-day');if(el&&histSel)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function chHistMonth(n){histM+=n;if(histM<0){histM=11;histY--;}if(histM>11){histM=0;histY++;}histSel=null;renderHist();}
+function openHistDay(d){var dt=new Date(d+'T12:00:00');histY=dt.getFullYear();histM=dt.getMonth();histSel=d;navTo('hist');setTimeout(function(){var el=document.getElementById('hist-day');if(el)el.scrollIntoView({block:'start'});},50);}
 
 function calcStreak(){
   var all=[];Object.values(G).forEach(function(g){g.exs.forEach(function(ex){all.push(ex);});});
@@ -2720,6 +2919,7 @@ document.getElementById('reg-pass').addEventListener('keydown',function(e){if(e.
     <button class="sb-item" data-screen="peso" onclick="navTo('peso')"><span class="sb-ic">⚖️</span><span>Peso corporal</span></button>
     <button class="sb-item" data-screen="fotos" onclick="navTo('fotos')"><span class="sb-ic">📷</span><span>Fotos progreso</span></button>
     <button class="sb-item" data-screen="obj" onclick="navTo('obj')"><span class="sb-ic">🎯</span><span>Objetivos</span></button>
+    <button class="sb-item" data-screen="hist" onclick="navTo('hist')"><span class="sb-ic">📅</span><span>Historial</span></button>
     <button class="sb-item" data-screen="stats" onclick="navTo('stats')"><span class="sb-ic">📈</span><span>Estadísticas</span></button>
     <button class="sb-item" data-screen="dash" onclick="navTo('dash')"><span class="sb-ic">📊</span><span>Dashboard</span></button>
   </div>
