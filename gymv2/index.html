@@ -751,6 +751,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .pw-input{min-width:0;width:100%;border:none}.pw-input-row{min-width:0}.pw-save{flex-shrink:0}
 .pw-save,.ai-btn{background:var(--acc)!important;color:#000!important;font-weight:800}
 .ai-card{background:var(--s1)!important;border:none!important}
+.h-go2{background:var(--s2)!important;color:var(--tx)!important}.h-ring{cursor:pointer}
 </style>
 </head>
 <body>
@@ -1072,18 +1073,18 @@ function renderHome(){
   var weekHtml=vols.map(function(x,i){var hgt=x.v?Math.max(18,Math.round(x.v/mx*100)):(x.any?18:0);
     return '<div class="h-wd'+(x.d===today?' today':'')+'" onclick="openHistDay(\''+x.d+'\')"><div class="h-bar"><span style="height:'+hgt+'%"></span></div><div class="h-wd-l">'+dn[i]+'</div></div>';}).join('');
 
-  // Next group: trained today → keep going; else the one not trained for longest
-  var gks=Object.keys(G).filter(function(g){return g!=='abdominales'&&G[g].exs&&G[g].exs.length;});
-  var lastOf={};gks.forEach(function(g){var l='';G[g].exs.forEach(function(ex){getAllDaysWithData(ex.id).forEach(function(d){if(d>l)l=d;});});lastOf[g]=l;});
-  var next=null,inProg=null;
-  gks.forEach(function(g){if(lastOf[g]===today)inProg=g;});
-  if(!inProg){var thisWeek=gks.filter(function(g){return lastOf[g]<days[0];});var pool=thisWeek.length?thisWeek:gks;pool.sort(function(a,b){return lastOf[a]<lastOf[b]?-1:1;});next=pool[0];}
-  var ng=inProg||next,nextHtml='';
-  if(ng){
-    var done=0;G[ng].exs.forEach(function(ex){if(exDoneToday(ex,today))done++;});
-    var ago=lastOf[ng]?Math.round((new Date(today+'T12:00:00')-new Date(lastOf[ng]+'T12:00:00'))/86400000):null;
-    var sub=inProg?done+' de '+G[ng].exs.length+' ejercicios hechos':G[ng].exs.length+' ejercicios · '+(ago===null?'sin registros':'última: '+(ago===0?'hoy':ago===1?'ayer':'hace '+ago+' días'));
-    nextHtml='<div class="h-card h-next"><div><div class="h-lbl">'+(inProg?'En curso':'Hoy toca')+'</div><div class="h-next-t">'+G[ng].name+'</div><div class="h-sub">'+sub+'</div></div><button class="h-go" onclick="startGroup(\''+ng+'\')">'+(inProg?'Seguir':'Empezar')+'</button></div>';
+  // Next group, learnt from history: which group usually follows the last one
+  var sug=suggestNextGroup(),nextHtml='';
+  if(sug){
+    var g0=G[sug.g];
+    if(sug.mode==='prog'){
+      var done=0;g0.exs.forEach(function(ex){if(exDoneToday(ex,today))done++;});
+      nextHtml='<div class="h-card h-next"><div><div class="h-lbl">En curso</div><div class="h-next-t">'+g0.name+'</div><div class="h-sub">'+done+' de '+g0.exs.length+' ejercicios hechos</div></div><button class="h-go" onclick="startGroup(\''+sug.g+'\')">Seguir</button></div>';
+    }else if(sug.mode==='rest'){
+      nextHtml='<div class="h-card h-next"><div><div class="h-lbl" style="color:var(--acc)">&#10003; Semana completada</div><div class="h-next-t">Descanso</div><div class="h-sub">Próximo: '+g0.name+(sug.why?' · '+sug.why:'')+'</div></div><button class="h-go h-go2" onclick="startGroup(\''+sug.g+'\')">Entrenar</button></div>';
+    }else{
+      nextHtml='<div class="h-card h-next"><div><div class="h-lbl">Hoy toca</div><div class="h-next-t">'+g0.name+'</div><div class="h-sub">'+sug.why+'</div></div><button class="h-go" onclick="startGroup(\''+sug.g+'\')">Empezar</button></div>';
+    }
   }
 
   // Tiles
@@ -1107,10 +1108,47 @@ function renderHome(){
 
   el.innerHTML=
     '<div class="h-top"><div><div class="h-date">'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})(now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))+'</div><div class="h-hi">'+gr+(name?', '+name:'')+'</div></div><button class="h-sync sync-btn" onclick="syncNow()">&#8635;</button></div>'+
-    '<div class="h-card h-hero"><div><div class="h-lbl">Racha</div><div class="h-big">'+streak+'<small>'+(streak===1?'semana':'semanas')+'</small></div><div class="h-sub">'+icon('fire')+(streak?'Semanas seguidas entrenando':'Entrena esta semana para empezarla')+'</div></div>'+
-      '<div class="h-ring"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke="#1f1f1f" stroke-width="9"/><circle cx="46" cy="46" r="38" fill="none" stroke="var(--acc)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pct)).toFixed(1)+'"/></svg><div class="h-ring-t"><b>'+trained+'<span style="font-size:13px;color:var(--mu)">/'+goal+'</span></b><span>días</span></div></div></div>'+
+    '<div class="h-card h-hero"><div><div class="h-lbl">Racha</div><div class="h-big">'+streak+'<small>'+(streak===1?'semana':'semanas')+'</small></div><div class="h-sub">'+icon('fire')+(streak?'Semanas seguidas entrenando':'Entrena esta semana para empezarla')+'</div><div class="h-sub" style="margin-top:4px;display:block">Esta semana: '+trained+' de '+goal+' días'+(trained>=goal?' · <span style="color:var(--acc)">objetivo cumplido</span>':'')+'</div></div>'+
+      '<div class="h-ring" onclick="editWeekGoal()"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke="#1f1f1f" stroke-width="9"/><circle cx="46" cy="46" r="38" fill="none" stroke="var(--acc)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pct)).toFixed(1)+'"/></svg><div class="h-ring-t"><b>'+trained+'<span style="font-size:13px;color:var(--mu)">/'+goal+'</span></b><span>'+(trained>=goal?'&#10003; objetivo':'días/sem')+'</span></div></div></div>'+
     '<div class="h-card"><div class="h-week">'+weekHtml+'</div></div>'+
     nextHtml+tiles+rows;
+}
+function editWeekGoal(){
+  var cur=Math.max(parseInt(ud.weekGoal)||4,1),v=prompt('¿Cuántos días quieres entrenar por semana?',cur);
+  if(v===null)return;v=parseInt(v);if(isNaN(v)||v<1||v>7){showToast('Pon un número del 1 al 7');return;}
+  ud.weekGoal=v;sched();renderHome();
+}
+// Sessions in order: one entry per (day, group) with sets logged (Abs and cardio excluded)
+function trainingSessions(){
+  var byDay={};
+  Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){getAllDaysWithData(ex.id).forEach(function(d){if(!histVals(ex.id,d).length)return;byDay[d]=byDay[d]||{};byDay[d][gk]=(byDay[d][gk]||0)+1;});});});
+  var out=[];Object.keys(byDay).sort().forEach(function(d){Object.keys(byDay[d]).sort(function(a,b){return byDay[d][b]-byDay[d][a];}).forEach(function(g){out.push({d:d,g:g});});});
+  return out;
+}
+function suggestNextGroup(){
+  var today=todayStr(),mon=fcMonday(today);
+  var gks=Object.keys(G).filter(function(g){return g!=='abdominales'&&G[g].exs&&G[g].exs.length;});
+  if(!gks.length)return null;
+  var ses=trainingSessions();
+  var todayG=ses.filter(function(x){return x.d===today;});
+  if(todayG.length)return{g:todayG[0].g,mode:'prog'};
+  // What usually comes after each group
+  var trans={};for(var i=1;i<ses.length;i++){var a=ses[i-1].g,b=ses[i].g;if(a===b)continue;trans[a]=trans[a]||{};trans[a][b]=(trans[a][b]||0)+1;}
+  var lastOf={};ses.forEach(function(x){lastOf[x.g]=x.d;});
+  var last=ses.length?ses[ses.length-1].g:null;
+  var doneWeek={};ses.forEach(function(x){if(x.d>=mon)doneWeek[x.g]=1;});
+  var pending=gks.filter(function(g){return !doneWeek[g];});
+  function pick(pool){
+    var t=last&&trans[last],best=null,bc=0;
+    if(t)pool.forEach(function(g){if((t[g]||0)>bc){bc=t[g];best=g;}});
+    if(best)return{g:best,why:'Sueles hacer '+G[best].name+' después de '+G[last].name};
+    pool=pool.slice().sort(function(a,b){return (lastOf[a]||'')<(lastOf[b]||'')?-1:1;});
+    var g=pool[0],ago=lastOf[g]?Math.round((new Date(today+'T12:00:00')-new Date(lastOf[g]+'T12:00:00'))/86400000):null;
+    return{g:g,why:G[g].exs.length+' ejercicios · '+(ago===null?'sin registros':'última: hace '+ago+' días')};
+  }
+  if(pending.length&&ses.some(function(x){return x.d>=mon;})){var r=pick(pending);r.mode='go';return r;}
+  if(!pending.length){var r2=pick(gks);r2.mode='rest';return r2;}
+  var r3=pick(gks);r3.mode='go';return r3;
 }
 function startGroup(g){
   goMain('ej');
