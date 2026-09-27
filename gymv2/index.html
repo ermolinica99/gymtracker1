@@ -761,6 +761,12 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .h-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu);margin-top:10px}
 .h-legend i{display:inline-block;width:14px;height:2px;border-radius:1px;background:rgba(244,244,242,.5)}
 .exc-set-up{color:var(--acc);font-weight:700}
+.excard.foc .exc-body{display:block!important}
+.excard.done.foc{opacity:1}
+.exc-prev{margin-top:10px;border-radius:12px;background:#0d0d0d;padding:4px 12px}
+.exc-prev-r{display:flex;justify-content:space-between;gap:10px;padding:8px 0;font-size:13px;cursor:pointer}
+.exc-prev-r+.exc-prev-r{border-top:1px solid #1c1c1c}
+.exc-prev-r span{color:var(--mu);white-space:nowrap}.exc-prev-r b{font-weight:700;color:var(--mu3);text-align:right}
 </style>
 </head>
 <body>
@@ -2577,6 +2583,16 @@ function bCard(ex,gk,td,refDay,focused){
       '<span class="exc-set-u">'+sub+'</span></label>';
   }
   setsHtml+='</div>';
+  // Previous sessions of this exercise (last 3 before the day shown)
+  if(focused){
+    var prevS=setHistory(ex.id,td).slice(-3).reverse();
+    if(prevS.length){
+      setsHtml+='<div class="exc-prev">'+prevS.map(function(x){
+        var dl=new Date(x.d+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+        return '<div class="exc-prev-r" onclick="openHistDay(\''+x.d+'\')"><span>'+dl+'</span><b>'+x.s.filter(function(v){return !isNaN(v)&&v>0;}).map(fmtN).join(' · ')+'</b></div>';
+      }).join('')+'</div>';
+    }
+  }
 
   // Quick logger: next empty set, value = last time for that set (or objective), ±2.5
   var nextIdx=-1;for(var ni=0;ni<ser.sets;ni++){if(serData[ni]===null||serData[ni]===undefined||serData[ni]===''){nextIdx=ni;break;}}
