@@ -980,7 +980,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-6';
+var APP_VERSION='2026.09.27-7';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -3297,84 +3297,6 @@ function delC(id){showConfirm('Eliminar esta actividad?',function(){CARDIO=CARDI
 // ── PESO ───────────────────────────────────────────────────────────────────────
 
 // ── FOTOS DE PROGRESO ──────────────────────────────────────────────────────────
-var fotoCompareA=null,fotoCompareB=null;
-
-function renderFotos(container){
-  if(!ud.fotos)ud.fotos=[];
-  var card=document.createElement('div');card.className='pw-card';
-  var h='<div class="pw-title">&#128247; Fotos de progreso</div>';
-  h+='<div class="pw-sub">Sube una foto para ver tu evolucion</div>';
-
-  // Upload button
-  h+='<label class="foto-upload-btn" for="foto-input">&#43; Subir foto de hoy</label>';
-  h+='<input type="file" id="foto-input" accept="image/*" style="display:none" onchange="handleFotoUpload(event)">';
-
-  // Compare section if 2+ photos
-  if(ud.fotos.length>=2){
-    h+='<div class="sec-h">Comparar</div>';
-    h+='<div class="foto-compare-wrap" id="foto-compare-grid">';
-    var sorted=ud.fotos.slice().sort(function(a,b){return a.date<b.date?-1:1;});
-    var first=sorted[0],last=sorted[sorted.length-1];
-    h+='<div class="foto-compare-item" onclick="selectCompare(0,this)"><img src="'+first.data+'"><div class="foto-compare-lbl">'+fmtShort(first.date)+'</div></div>';
-    h+='<div class="foto-compare-item" onclick="selectCompare(1,this)"><img src="'+last.data+'"><div class="foto-compare-lbl">'+fmtShort(last.date)+'</div></div>';
-    h+='</div>';
-    if(first.weight&&last.weight){var wdiff=Math.round((last.weight-first.weight)*10)/10;var wcol=wdiff<0?'var(--gr)':'var(--red2)';h+='<div style="text-align:center;font-size:13px;color:var(--mu);margin-bottom:12px">Cambio de peso: <strong style="color:'+wcol+'">'+(wdiff>0?'+':'')+wdiff+' kg</strong></div>';}
-  }
-
-  // Gallery
-  if(ud.fotos.length>0){
-    h+='<div class="sec-h">Galeria</div><div class="foto-grid">';
-    var sorted2=ud.fotos.slice().sort(function(a,b){return a.date>b.date?-1:1;});
-    sorted2.forEach(function(f,i){
-      h+='<div class="foto-item"><img src="'+f.data+'" loading="lazy"><div class="foto-item-info"><div class="foto-item-date">'+fmtShort(f.date)+'</div>'+(f.weight?'<div class="foto-item-weight">'+f.weight+' kg</div>':'')+'</div><button class="foto-item-del" onclick="deleteFoto('+i+')">&#10005;</button></div>';
-    });
-    h+='</div>';
-  }
-
-  card.innerHTML=h;
-  container.appendChild(card);
-}
-
-function handleFotoUpload(event){
-  var file=event.target.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    // Compress image
-    var img=new Image();
-    img.onload=function(){
-      var canvas=document.createElement('canvas');
-      var maxW=600,maxH=800;
-      var w=img.width,h=img.height;
-      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
-      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      var data=canvas.toDataURL('image/jpeg',0.75);
-      if(!ud.fotos)ud.fotos=[];
-      var td=todayStr();
-      var weight=ud.bodyWeight&&ud.bodyWeight[td]?ud.bodyWeight[td]:null;
-      ud.fotos.push({date:td,data:data,weight:weight});
-      sched();renderPeso();showToast('Foto guardada');
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function deleteFoto(idx){
-  showConfirm('Eliminar esta foto?',function(){
-    if(ud.fotos)ud.fotos.splice(idx,1);
-    sched();renderPeso();
-  });
-}
-
-function selectCompare(slot,el){
-  // Just visual selection feedback
-  var items=document.querySelectorAll('.foto-compare-item');
-  items.forEach(function(i){i.classList.remove('selected');});
-  el.classList.add('selected');
-}
-
 function renderPeso(){
   var content=document.getElementById('peso-content');content.innerHTML='';
   if(!ud.bodyWeight)ud.bodyWeight={};
@@ -3383,8 +3305,10 @@ function renderPeso(){
   var tc=document.createElement('div');tc.className='pw-card';tc.innerHTML='<div class="pw-title">Hoy</div><div class="pw-sub">'+fmtD(td)+'</div><div class="pw-input-row"><input class="pw-input" type="number" inputmode="decimal" step="0.1" placeholder="0.0" value="'+(bw[td]||'')+'" id="bw-inp"><span class="pw-unit">kg</span><button class="pw-save" onclick="saveBW()">Guardar</button></div>';
   content.appendChild(tc);
   if(keys.length){var hc=document.createElement('div');hc.className='pw-card';var h='<div class="sec-h">Historial</div>';keys.slice().reverse().slice(0,30).forEach(function(d,i,arr){var val=bw[d],p2=arr[i+1]?bw[arr[i+1]]:null,dh='';if(p2){var df=Math.round((val-p2)*10)/10,cls=df>0?'phi-up':df<0?'phi-dn':'phi-eq';dh='<span class="phi-d '+cls+'">'+(df>0?'+':'')+df+' kg</span>';}h+='<div class="phi"><span class="phi-date">'+fmtD(d)+'</span><span class="phi-val">'+val+' kg</span>'+dh+'</div>';});hc.innerHTML=h;content.appendChild(hc);}
-  // Fotos
-  renderFotos(content);
+  // Link to the photos screen
+  var fl=document.createElement('div');fl.className='h-rows';fl.style.marginTop='12px';
+  fl.innerHTML='<div class="h-row" onclick="goMain(\'fotos\')">'+icon('camera')+'<div class="h-row-t">Fotos de progreso</div><div class="h-row-v">'+((ud.fotos&&ud.fotos.length)||0)+' fotos</div>'+icon('chev','ic ch')+'</div>';
+  content.appendChild(fl);
 }
 function saveBW(){var inp=document.getElementById('bw-inp'),val=parseFloat(inp.value);if(isNaN(val)||val<=0){showToast('Introduce un peso valido');return;}if(!ud.bodyWeight)ud.bodyWeight={};ud.bodyWeight[todayStr()]=val;sched();showToast('Guardado');renderPeso();}
 
