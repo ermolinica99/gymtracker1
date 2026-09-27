@@ -831,6 +831,17 @@ body *{text-transform:none!important}
 .rp-diet td:nth-child(3){color:#444}.rp-diet tr.rp-first td{border-top:1px solid #ccc}
 .obj-diet{margin-top:12px;background:var(--s2);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--mu3);line-height:1.4}
 .obj-diet b{color:var(--tx)}
+.ck-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #1c1c1c}
+.ck-l b{display:block;font-size:14px}.ck-l span{font-size:11px;color:var(--mu)}
+.ck-btns{display:flex;gap:5px;flex-shrink:0}.ck-btns button{width:36px;height:36px;border-radius:10px;border:none;background:var(--s2);color:var(--mu3);font-weight:800;font-family:var(--font);font-size:14px;cursor:pointer}
+.ck-btns button.on{background:var(--acc);color:#000}
+.ck-lbl{font-size:13px;color:var(--mu3);margin:12px 0 6px}.ck-ta{height:64px;margin-bottom:0}
+.rp-period{display:flex;align-items:center;gap:6px;margin:-8px 0 16px;font-size:12px;color:#555}
+.rp-period button{height:30px;padding:0 12px;border-radius:15px;border:1px solid #ccc;background:#fff;color:#111;font-weight:700;font-family:var(--font);font-size:12px}
+.rp-period button.on{background:#111;color:#fff;border-color:#111}
+.rp-goal{background:#f4f4f2;border-radius:10px;padding:10px 12px}
+.rp-kpis{grid-template-columns:repeat(3,1fr)}
+@media print{.rp-period{display:none!important}}
 </style>
 </head>
 <body>
@@ -941,6 +952,12 @@ body *{text-transform:none!important}
     <div class="scrl" id="prev-content"></div>
   </div>
 
+  <!-- CHECK-IN -->
+  <div class="scr" id="scr-checkin">
+    <div class="hdr"><button class="hdr-back" onclick="goMain(ejMainScreen)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hdr-info"><h1>Check-in semanal</h1><p id="ck-week"></p></div></div>
+    <div class="scrl" id="checkin-content"></div>
+  </div>
+
   <!-- HISTORIAL -->
   <div class="scr" id="scr-hist">
     <div class="hdr">
@@ -1042,7 +1059,7 @@ body *{text-transform:none!important}
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-15';
+var APP_VERSION='2026.09.27-16';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -1208,7 +1225,7 @@ function renderHome(){
   // Secondary rows
   var kcal=histKcal(today),photos=(ud.fotos&&ud.fotos.length)||0,goals=ud.goals?Object.keys(ud.goals).filter(function(k){return k!=='bw';}).length:0;
   function row(ic,t,v,scr){return '<div class="h-row" onclick="goMain(\''+scr+'\')">'+icon(ic)+'<div class="h-row-t">'+t+'</div><div class="h-row-v">'+v+'</div>'+icon('chev','ic ch')+'</div>';}
-  var rows='<div class="h-rows">'+row('food','Alimentación',kcal?kcal+' kcal hoy':'Sin confirmar','alim')+row('target','Objetivos',objHomeTxt(),'obj')+row('camera','Fotos',photos?photos+' fotos':'Sin fotos','fotos')+row('grid','Resumen','','dash')+'</div>';
+  var rows='<div class="h-rows">'+row('food','Alimentación',kcal?kcal+' kcal hoy':'Sin confirmar','alim')+row('list','Check-in semanal',ckDone()?'Hecho':'Pendiente','checkin')+row('target','Objetivos',objHomeTxt(),'obj')+row('camera','Fotos',photos?photos+' fotos':'Sin fotos','fotos')+row('grid','Resumen','','dash')+'</div>';
 
   el.innerHTML=
     '<div class="h-top"><div><div class="h-date">'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})(now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))+'</div><div class="h-hi">'+gr+(name?', '+name:'')+'</div></div><button class="h-sync sync-btn" onclick="syncNow()">&#8635;</button></div>'+
@@ -1360,11 +1377,13 @@ function renderProgChart(exId){
 // ── COACH REPORT ───────────────────────────────────────────────────────────────
 // Everything is computed on the device from your data; "Guardar PDF" uses the
 // system print dialog (Save as PDF / share).
+var rpWeeks=8;
+function setRpWeeks(n){rpWeeks=n;exportPDF();}
 function exportPDF(){
   closeSidebar();
   var el=document.getElementById('report');
   if(!el){el=document.createElement('div');el.id='report';document.body.appendChild(el);}
-  try{el.innerHTML='<div class="rp-bar"><button onclick="closeReport()">Cerrar</button><b>Informe</b><span>'+(navigator.share?'<button onclick="shareReport()">Compartir</button> ':'')+'<button class="rp-pdf" onclick="window.print()">Guardar PDF</button></span></div><div class="rp-page">'+buildReport()+'</div>';}
+  try{el.innerHTML='<div class="rp-bar"><button onclick="closeReport()">Cerrar</button><b>Informe</b><span>'+(navigator.share?'<button onclick="shareReport()">Compartir</button> ':'')+'<button class="rp-pdf" onclick="window.print()">Guardar PDF</button></span></div><div class="rp-page"><div class="rp-period">Periodo: '+[4,8,12].map(function(n){return '<button class="'+(n===rpWeeks?'on':'')+'" onclick="setRpWeeks('+n+')">'+n+' semanas</button>';}).join('')+'</div>'+buildReport()+'</div>';}
   catch(e){el.innerHTML='<div class="rp-bar"><button onclick="closeReport()">Cerrar</button></div><div class="rp-page"><p>No se pudo generar el informe: '+e.message+'</p></div>';}
   el.classList.add('on');el.scrollTop=0;
 }
@@ -1419,13 +1438,14 @@ function rpLine(pts,proj,goal){
 function buildReport(){
   var today=todayStr(),thisMon=fcMonday(today),name=(_s&&_s.user&&_s.user.user_metadata&&_s.user.user_metadata.name)||'';
   var goalDays=Math.max(parseInt(ud.weekGoal)||4,1);
-  // Last 8 weeks
-  var weeks=[];for(var i=7;i>=0;i--){var mon=addDays(thisMon,-7*i),ds=[];for(var k=0;k<7;k++)ds.push(addDays(mon,k));weeks.push({mon:mon,days:ds});}
+  // Last N weeks (the current one is partial)
+  var NW=rpWeeks;
+  var weeks=[];for(var i=NW-1;i>=0;i--){var mon=addDays(thisMon,-7*i),ds=[];for(var k=0;k<7;k++)ds.push(addDays(mon,k));weeks.push({mon:mon,days:ds});}
   weeks.forEach(function(w){var dd=0,vol=0,cmin=0;w.days.forEach(function(d){if(d>today)return;var r=histDay(d);if(r.any)dd++;vol+=r.vol;r.cardio.forEach(function(c){cmin+=c.min;});});w.dd=dd;w.vol=vol;w.cmin=cmin;w.lbl=rpFmtD(w.mon,{day:'numeric',month:'numeric'});});
-  var full=weeks.slice(0,7);// complete weeks (the current one is partial)
-  var last4=full.slice(-4),prev4=full.slice(0,4);
-  var avgDays=last4.reduce(function(a,w){return a+w.dd;},0)/4;
-  var volL=last4.reduce(function(a,w){return a+w.vol;},0)/4,volP=prev4.reduce(function(a,w){return a+w.vol;},0)/Math.max(prev4.length,1);
+  var full=weeks.slice(0,NW-1),half=Math.max(1,Math.min(4,Math.floor(full.length/2)));
+  var last4=full.slice(-half),prev4=full.slice(-2*half,-half);
+  var avgDays=last4.reduce(function(a,w){return a+w.dd;},0)/last4.length;
+  var volL=last4.reduce(function(a,w){return a+w.vol;},0)/last4.length,volP=prev4.reduce(function(a,w){return a+w.vol;},0)/Math.max(prev4.length,1);
   var volChg=rpPct(volL,volP);
   // Strength per exercise over the 8 weeks
   var start=weeks[0].mon,rows=[],cnt={beat:0,up:0,flat:0,down:0},topChg=[];
@@ -1446,7 +1466,7 @@ function buildReport(){
   var bwEta=null;if(bwGoal&&bwNow!==null&&slope&&Math.abs(slope)>0.001&&((bwGoal-bwNow)/slope)>0){bwEta=Math.round((bwGoal-bwNow)/slope/7);}
   var bwDir=null;if(bwGoal&&bwNow!==null&&wkRate!==null){bwDir=Math.abs(bwGoal-bwNow)<0.3?'on':((bwGoal-bwNow)*wkRate>0?'toward':(Math.abs(wkRate)<0.05?'flat':'away'));}
   // Cardio, food, RPE, photos, notes
-  var cMin=last4.reduce(function(a,w){return a+w.cmin;},0);
+  var cMin=last4.reduce(function(a,w){return a+w.cmin;},0)*4/last4.length;
   var kc=[];for(var q=0;q<7;q++){var kk=histKcal(addDays(today,-q));if(kk)kc.push(kk);}
   var avgKcal=kc.length?Math.round(kc.reduce(function(a,b){return a+b;},0)/kc.length):null;
   var rpes=[];Object.keys(ud.rpe||{}).forEach(function(k){var d=k.slice(-10);if(d>=addDays(today,-28)&&ud.rpe[k])rpes.push(ud.rpe[k]);});
@@ -1455,13 +1475,31 @@ function buildReport(){
   var lastByGroup={};Object.keys(G).forEach(function(gk){var l='';G[gk].exs.forEach(function(ex){getAllDaysWithData(ex.id).forEach(function(d){if(d>l)l=d;});});lastByGroup[gk]=l;});
   var neglected=Object.keys(G).filter(function(gk){return gk!=='abdominales'&&G[gk].exs.length&&(!lastByGroup[gk]||lastByGroup[gk]<addDays(today,-14));});
 
+
+  // 1. Current routine
+  var routine='';Object.keys(G).forEach(function(gk){var g=G[gk];if(!g.exs||!g.exs.length)return;
+    routine+='<tr class="rp-grp"><td colspan="3">'+g.name+'</td></tr>'+g.exs.map(function(ex){return '<tr><td>'+ex.name+'</td><td>'+ex.s+'</td><td>'+fmt(gRest(ex.id))+'</td></tr>';}).join('');});
+  // 2. Sets per muscle group per week (sets logged with a weight)
+  var setRows=Object.keys(G).map(function(gk){var per=full.slice(-4).map(function(w){var n=0;G[gk].exs.forEach(function(ex){w.days.forEach(function(d){n+=histVals(ex.id,d).length;});});return n;});
+    var avg=per.length?per.reduce(function(a,b){return a+b;},0)/per.length:0;return{gk:gk,per:per,avg:avg};}).filter(function(x){return x.avg>0;});
+  // 3. Records in the period (heaviest set beats everything before it)
+  var recs=[];Object.keys(G).forEach(function(gk){G[gk].exs.forEach(function(ex){var all=setHistory(ex.id,'9999-12-31'),best=-Infinity;
+    all.forEach(function(x){var t=Math.max.apply(null,x.s.filter(function(v){return !isNaN(v);}).concat([0]));if(x.d>=start&&best>-Infinity&&t>best+0.05)recs.push({d:x.d,ex:ex,v:t,prev:best});if(t>best)best=t;});});});
+  recs.sort(function(a,b){return a.d<b.d?1:-1;});
+  // 4. Forecast compliance
+  var fT=0,fM=0;Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){var r=objForecastInfo(ex.id);if(r){fT+=r.n;fM+=r.ok;}});});
+  var fPct=fT?Math.round(fM/fT*100):null;
+  // 6. Weekly check-ins in the period
+  var cks=weeks.map(function(w){return{w:w,c:ud.checkins&&ud.checkins[w.mon]};}).filter(function(x){return x.c;});
+  // 7. Athlete goal and questions
+  var prof=ud.profile||{};
   // Verdict
   var sig=[];
-  if(nEx){var r=good/nEx;sig.push({k:r>=0.5?'good':cnt.down/nEx>=0.34?'bad':'mid',t:'Fuerza: '+good+' de '+nEx+' ejercicios mejorando'+(avgChg!==null?' (serie más pesada '+rpSign(avgChg,'%')+' en 8 semanas)':'')});}
+  if(nEx){var r=good/nEx;sig.push({k:r>=0.5?'good':cnt.down/nEx>=0.34?'bad':'mid',t:'Fuerza: '+good+' de '+nEx+' ejercicios mejorando'+(avgChg!==null?' (serie más pesada '+rpSign(avgChg,'%')+' en '+NW+' semanas)':'')});}
   sig.push({k:avgDays>=goalDays*0.85?'good':avgDays>=goalDays*0.6?'mid':'bad',t:'Constancia: '+avgDays.toFixed(1)+' días/semana de media (objetivo '+goalDays+')'});
   if(bwDir)sig.push({k:bwDir==='toward'||bwDir==='on'?'good':bwDir==='flat'?'mid':'bad',t:'Peso: '+(bwDir==='on'?'en el objetivo':bwDir==='toward'?'avanzando hacia '+bwGoal+' kg ('+rpSign(wkRate,' kg/sem')+')':bwDir==='flat'?'estable, sin acercarse a '+bwGoal+' kg':'alejándose de '+bwGoal+' kg ('+rpSign(wkRate,' kg/sem')+')')});
   else if(wkRate!==null)sig.push({k:'mid',t:'Peso: '+rpSign(wkRate,' kg/semana')+' (sin objetivo de peso definido)'});
-  if(volChg!==null&&volP)sig.push({k:volChg>=-10?'good':volChg>=-25?'mid':'bad',t:'Volumen: '+rpSign(volChg,'%')+' en las últimas 4 semanas frente a las 4 anteriores'});
+  if(volChg!==null&&volP)sig.push({k:volChg>=-10?'good':volChg>=-25?'mid':'bad',t:'Volumen: '+rpSign(volChg,'%')+' en las últimas '+half+' semanas frente a las '+half+' anteriores'});
   var sc=sig.reduce(function(a,x){return a+(x.k==='good'?1:x.k==='bad'?-1:0);},0),bad=sig.filter(function(x){return x.k==='bad';}).length;
   var verdict=bad===0&&sc>=Math.ceil(sig.length/2)?{k:'good',t:'Vas por buen camino',d:'La mayoría de indicadores progresan. Mantener el plan y seguir la progresión.'}:
               bad>=2||sc<0?{k:'bad',t:'Hay que ajustar',d:'Varios indicadores no avanzan. Conviene revisar el plan con el entrenador.'}:
@@ -1489,19 +1527,37 @@ function buildReport(){
   if(bwDir==='away')pts.push('El peso corporal se aleja del objetivo: revisar calorías.');
   if(bwDir==='on'&&wkRate!==null&&Math.abs(wkRate)>=0.15)pts.push('Peso ya en el objetivo ('+bwGoal+' kg) pero sigue '+(wkRate<0?'bajando':'subiendo')+' ('+rpSign(wkRate,' kg/sem')+'): valorar pasar a mantenimiento o fijar un nuevo objetivo.');
   if(volChg!==null&&volChg<-20)pts.push('El volumen ha bajado un '+Math.abs(volChg)+'%.');
+  if(cks.length){var avgOf=function(k){var v=cks.map(function(x){return x.c[k];}).filter(function(v){return v;});return v.length?v.reduce(function(a,b){return a+b;},0)/v.length:null;};
+    var sl=avgOf('sueno'),en=avgOf('energia'),es=avgOf('estres'),di2=avgOf('dieta');
+    if(sl!==null&&sl<=2.5)pts.push('Sueño bajo en los check-ins (media '+sl.toFixed(1)+'/5): puede limitar la recuperación.');
+    if(en!==null&&en<=2.5)pts.push('Energía baja (media '+en.toFixed(1)+'/5).');
+    if(es!==null&&es>=4)pts.push('Estrés alto (media '+es.toFixed(1)+'/5).');
+    if(di2!==null&&di2<=2.5)pts.push('Cumplimiento de la dieta bajo según el atleta (media '+di2.toFixed(1)+'/5).');
+    cks.forEach(function(x){if(x.c.molestias&&x.c.molestias.trim())pts.push('Molestia (semana del '+rpFmtD(x.w.mon)+'): '+x.c.molestias.replace(/</g,'&lt;'));});}
   var wins=rows.filter(function(r){return r.st.k==='beat';}).map(function(r){return r.ex.name;});
 
   // ── HTML
   var H='';
-  H+='<header class="rp-h"><div><div class="rp-kick">Informe de progreso</div><h1>'+(name||'Mi progreso')+'</h1><div class="rp-sub">'+rpFmtD(weeks[0].mon,{day:'numeric',month:'long'})+' – '+rpFmtD(today,{day:'numeric',month:'long',year:'numeric'})+' · últimas 8 semanas</div></div></header>';
+  H+='<header class="rp-h"><div><div class="rp-kick">Informe de progreso</div><h1>'+(name||'Mi progreso')+'</h1><div class="rp-sub">'+rpFmtD(weeks[0].mon,{day:'numeric',month:'long'})+' – '+rpFmtD(today,{day:'numeric',month:'long',year:'numeric'})+' · últimas '+NW+' semanas</div></div></header>';
+  if(prof.objetivo&&prof.objetivo.trim())H+='<section class="rp-goal"><b>Objetivo del atleta:</b> '+prof.objetivo.replace(/</g,'&lt;')+'</section>';
   H+='<section class="rp-verdict rp-'+verdict.k+'"><div class="rp-vt">'+ICON[verdict.k]+' '+verdict.t+'</div><div class="rp-vd">'+verdict.d+'</div><ul>'+sig.map(function(x){return '<li><span class="rp-tag rp-'+x.k+'">'+ICON[x.k]+' '+LBL[x.k]+'</span>'+x.t+'</li>';}).join('')+'</ul></section>';
   if(head.length)H+='<section><h2>Hacia dónde vas</h2><ul class="rp-list">'+head.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul><p class="rp-note">Proyección calculada con tu ritmo actual; no es una garantía.</p></section>';
   H+='<section class="rp-kpis">'+
-    '<div><b>'+avgDays.toFixed(1)+'</b><span>días/semana (últ. 4 sem)</span></div>'+
+    '<div><b>'+avgDays.toFixed(1)+'</b><span>días/semana (últ. '+half+' sem)</span></div>'+
     '<div><b>'+calcStreak()+'</b><span>semanas seguidas</span></div>'+
     '<div><b>'+(volL>=1000?Math.round(volL/100)/10+' t':Math.round(volL)+' kg')+'</b><span>volumen/semana'+(volChg!==null&&volP?' ('+rpSign(volChg,'%')+')':'')+'</span></div>'+
-    '<div><b>'+(bwNow!==null?bwNow+' kg':'—')+'</b><span>peso'+(wkRate!==null?' ('+rpSign(wkRate,' kg/sem')+')':'')+'</span></div></section>';
+    '<div><b>'+(bwNow!==null?bwNow+' kg':'—')+'</b><span>peso'+(wkRate!==null?' ('+rpSign(wkRate,' kg/sem')+')':'')+'</span></div>'+
+    '<div><b>'+(fPct!==null?fPct+'%':'—')+'</b><span>previsiones cumplidas'+(fT?' ('+fM+'/'+fT+' sesiones)':'')+'</span></div>'+
+    '<div><b>'+recs.length+'</b><span>récords en el periodo</span></div></section>';
+  if(cks.length){
+    var lblC={sueno:'Sueño',energia:'Energía',estres:'Estrés',hambre:'Hambre',dieta:'Dieta'};
+    H+='<section><h2>Bienestar (check-in semanal)</h2><p class="rp-cap">Valoración del atleta de 1 a 5. En estrés y hambre, 5 es alto.</p><table class="rp-t"><thead><tr><th>Semana</th>'+Object.keys(lblC).map(function(k){return '<th>'+lblC[k]+'</th>';}).join('')+'<th>Molestias</th></tr></thead><tbody>'+
+      cks.map(function(x){return '<tr><td>'+rpFmtD(x.w.mon)+'</td>'+Object.keys(lblC).map(function(k){return '<td>'+(x.c[k]||'—')+'</td>';}).join('')+'<td>'+((x.c.molestias||'').replace(/</g,'&lt;')||'—')+'</td></tr>';}).join('')+'</tbody></table></section>';
+  }
   H+='<section><h2>Constancia</h2><p class="rp-cap">Días entrenados por semana. Línea discontinua: objetivo de '+goalDays+' días. La última barra es la semana en curso.</p>'+rpBars(weeks.map(function(w){return w.dd;}),weeks.map(function(w){return w.lbl;}),{ref:goalDays,refLbl:'Objetivo '+goalDays,title:'Días entrenados por semana'})+'</section>';
+  if(routine)H+='<section><h2>Rutina actual</h2><table class="rp-t"><thead><tr><th>Ejercicio</th><th>Series × reps</th><th>Descanso</th></tr></thead><tbody>'+routine+'</tbody></table></section>';
+  if(setRows.length)H+='<section><h2>Series por grupo muscular</h2><p class="rp-cap">Series con peso registradas por semana (últimas 4 semanas completas).</p><table class="rp-t"><thead><tr><th>Grupo</th>'+full.slice(-4).map(function(w){return '<th>'+w.lbl+'</th>';}).join('')+'<th>Media</th></tr></thead><tbody>'+
+    setRows.map(function(x){return '<tr><td>'+G[x.gk].name+'</td>'+x.per.map(function(n){return '<td>'+n+'</td>';}).join('')+'<td><b>'+(Math.round(x.avg*10)/10)+'</b></td></tr>';}).join('')+'</tbody></table></section>';
   if(rows.length){
     H+='<section><h2>Fuerza por ejercicio</h2><p class="rp-cap">Serie más pesada de la primera sesión del periodo frente a la última. «Próxima» es la previsión por series de la app.</p><table class="rp-t"><thead><tr><th>Ejercicio</th><th>Inicio</th><th>Ahora</th><th>Cambio</th><th>Estado</th><th>Próxima sesión</th></tr></thead><tbody>';
     var lastG='';
@@ -1510,6 +1566,8 @@ function buildReport(){
       H+='<tr><td>'+r.ex.name+'</td><td>'+fmtN(r.a)+'</td><td><b>'+fmtN(r.b)+'</b></td><td>'+(r.ch!==null?rpSign(r.ch,'%'):'—')+'</td><td><span class="rp-tag rp-'+k+'">'+ICON[k]+' '+r.st.t+'</span></td><td>'+(r.next?sfStr(r.next.sets,'',false):'—')+'</td></tr>';});
     H+='</tbody></table>'+(wins.length?'<p class="rp-note">Superando la previsión: '+wins.join(', ')+'.</p>':'')+'</section>';
   }
+  if(recs.length)H+='<section><h2>Récords del periodo</h2><table class="rp-t"><thead><tr><th>Fecha</th><th>Ejercicio</th><th>Antes</th><th>Nuevo</th></tr></thead><tbody>'+
+    recs.slice(0,15).map(function(x){return '<tr><td>'+rpFmtD(x.d)+'</td><td>'+x.ex.name+'</td><td>'+fmtN(x.prev)+' kg</td><td><b>'+fmtN(x.v)+' kg</b></td></tr>';}).join('')+'</tbody></table>'+(recs.length>15?'<p class="rp-note">'+recs.length+' récords en total; se muestran los 15 más recientes.</p>':'')+'</section>';
   H+='<section><h2>Volumen semanal</h2><p class="rp-cap">Kilos totales movidos por semana (peso × repeticiones de la rutina).</p>'+rpBars(weeks.map(function(w){return Math.round(w.vol);}),weeks.map(function(w){return w.lbl;}),{fmt:function(v){return v>=1000?Math.round(v/100)/10+'t':Math.round(v)+'';},title:'Volumen semanal'})+'</section>';
   if(bwPts.length>=2){
     H+='<section><h2>Peso corporal</h2><p class="rp-cap">Últimos 90 días. Discontinua: proyección a 8 semanas con el ritmo de las últimas 6 semanas'+(bwGoal?'; punteada: objetivo':'')+'.</p>'+rpLine(bwPts,proj,bwGoal)+
@@ -1537,6 +1595,7 @@ function buildReport(){
   }
   H+='<section><h2>Puntos a revisar con el entrenador</h2>'+(pts.length?'<ul class="rp-list">'+pts.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>':'<p>No hay alertas: todo avanza según lo previsto.</p>')+'</section>';
   var notes=[];Object.keys(G).forEach(function(gk){G[gk].exs.forEach(function(ex){var n=ud['note_'+ex.id];if(n&&n.trim())notes.push('<li><b>'+ex.name+':</b> '+n.replace(/</g,'&lt;')+'</li>');});});
+  if(prof.preguntas&&prof.preguntas.trim())H+='<section class="rp-goal"><h2>Preguntas para el entrenador</h2><p style="white-space:pre-line">'+prof.preguntas.replace(/</g,'&lt;')+'</p></section>';
   if(notes.length)H+='<section><h2>Notas del atleta</h2><ul class="rp-list">'+notes.join('')+'</ul></section>';
   H+='<footer class="rp-f">Generado con Gym Tracker el '+rpFmtD(today,{day:'numeric',month:'long',year:'numeric'})+'. Los datos son los registrados por el atleta; volumen calculado con las repeticiones de la rutina.</footer>';
   return H;
@@ -1849,7 +1908,7 @@ function goMain(s,btn){
   if(btn)document.querySelectorAll('.main-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
   document.querySelectorAll('#main .scr').forEach(function(b){b.classList.remove('on');});
-  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats',hist:'scr-hist',prev:'scr-prev'};
+  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats',hist:'scr-hist',prev:'scr-prev',checkin:'scr-checkin'};
   document.getElementById(ids[s]).classList.add('on');
   if(s==='home')renderHome();
   else if(s==='dash')renderDash();
@@ -1868,6 +1927,7 @@ function goMain(s,btn){
   else if(s==='alim'){renderAlim();}
   else if(s==='hist')renderHist();
   else if(s==='prev')renderPrev();
+  else if(s==='checkin')renderCheckin();
   else renderStats();
 }
 function goGroup(g,btn){
@@ -2352,6 +2412,27 @@ function renderPrev(){
   h+='<div class="fc-note" style="padding:0 4px 20px">Línea verde: tu serie más pesada en cada sesión. Discontinua: la previsión de las próximas 4 sesiones. Toca un ejercicio para ver el detalle.</div>';
   el.innerHTML=h;
 }
+
+// ── WEEKLY CHECK-IN ────────────────────────────────────────────────────────────
+var CK_ITEMS=[['sueno','Sueño','Muy mal','Muy bien'],['energia','Energía','Muy baja','Muy alta'],['estres','Estrés','Muy bajo','Muy alto'],['hambre','Hambre','Muy poca','Mucha'],['dieta','Cumplimiento de la dieta','Nada','Total']];
+function ckWeek(){return fcMonday(todayStr());}
+function renderCheckin(){
+  var el=document.getElementById('checkin-content');if(!el)return;
+  if(!ud.checkins)ud.checkins={};if(!ud.profile)ud.profile={};
+  var w=ckWeek(),c=ud.checkins[w]||{};
+  document.getElementById('ck-week').textContent='Semana del '+rpFmtD(w,{day:'numeric',month:'long'});
+  var h='<div class="dash-card"><div class="dash-card-title">¿Cómo ha ido la semana?</div>';
+  CK_ITEMS.forEach(function(it){h+='<div class="ck-row"><div class="ck-l"><b>'+it[1]+'</b><span>1 '+it[2]+' · 5 '+it[3]+'</span></div><div class="ck-btns">'+[1,2,3,4,5].map(function(v){return '<button class="'+(c[it[0]]===v?'on':'')+'" onclick="setCk(\''+it[0]+'\','+v+')">'+v+'</button>';}).join('')+'</div></div>';});
+  h+='<div class="ck-lbl">Molestias o lesiones</div><textarea class="note-inp ck-ta" placeholder="Ej: molestia en el hombro derecho al hacer press" onchange="setCk(\'molestias\',this.value)">'+(c.molestias||'').replace(/</g,'&lt;')+'</textarea></div>';
+  h+='<div class="dash-card"><div class="dash-card-title">Para el informe del entrenador</div>'+
+    '<div class="ck-lbl">Mi objetivo</div><textarea class="note-inp ck-ta" placeholder="Ej: bajar a 85 kg manteniendo la fuerza" onchange="setProf(\'objetivo\',this.value)">'+(ud.profile.objetivo||'').replace(/</g,'&lt;')+'</textarea>'+
+    '<div class="ck-lbl">Preguntas para el entrenador</div><textarea class="note-inp ck-ta" style="height:90px" placeholder="Lo que quieras consultarle en la próxima revisión" onchange="setProf(\'preguntas\',this.value)">'+(ud.profile.preguntas||'').replace(/</g,'&lt;')+'</textarea>'+
+    '<button class="h-go" style="width:100%;margin-top:10px" onclick="exportPDF()">Ver informe</button></div>';
+  el.innerHTML=h;
+}
+function setCk(k,v){if(!ud.checkins)ud.checkins={};var w=ckWeek();if(!ud.checkins[w])ud.checkins[w]={};ud.checkins[w][k]=v;ud.checkins[w].fecha=todayStr();sched();if(k!=='molestias')renderCheckin();}
+function setProf(k,v){if(!ud.profile)ud.profile={};ud.profile[k]=v;sched();}
+function ckDone(){var c=ud.checkins&&ud.checkins[ckWeek()];return !!c&&CK_ITEMS.every(function(it){return c[it[0]];});}
 
 // ── HISTORIAL ──────────────────────────────────────────────────────────────────
 var histY=null,histM=null,histSel=null;
@@ -3451,6 +3532,7 @@ document.getElementById('reg-pass').addEventListener('keydown',function(e){if(e.
     <button class="sb-item" data-screen="peso" onclick="navTo('peso')"><span class="sb-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/></svg></span><span>Peso corporal</span></button>
     <button class="sb-item" data-screen="fotos" onclick="navTo('fotos')"><span class="sb-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg></span><span>Fotos de progreso</span></button>
     <button class="sb-item" data-screen="obj" onclick="navTo('obj')"><span class="sb-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><span>Objetivos</span></button>
+    <button class="sb-item" data-screen="checkin" onclick="navTo('checkin')"><span class="sb-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><span>Check-in semanal</span></button>
   </div>
   <div class="sb-footer">
     <div style="font-size:11px;color:var(--mu2);padding:0 14px 6px">Versión <span id="app-ver"></span></div>
