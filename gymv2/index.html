@@ -976,7 +976,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-4';
+var APP_VERSION='2026.09.27-5';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -2183,6 +2183,28 @@ function setForecast(id,before,nSets,isAbs){
     }
     res.push({v:Math.round(next*10)/10,last:last,up:next>last});
   }
+  // Ladder pattern across sets: each session one (or k) more set moves up,
+  // right to left, until all are equal; then the last set starts the next level.
+  // e.g. 40·40·50·50 → 40·50·50·50 → 50·50·50·50 → 50·50·50·55
+  var lad=h.slice(-5).map(function(x){return x.s.slice(0,nSets).map(function(v){return isNaN(v)||v<=0?null:v;});}).filter(function(a){return a.every(function(v){return v!==null;})&&a.length===nSets;});
+  if(nSets>1&&lad.length>=3){
+    var tr=[];for(var t=1;t<lad.length;t++){var inc=0,dec=0;for(var j=0;j<nSets;j++){if(lad[t][j]>lad[t-1][j]+0.05)inc++;else if(lad[t][j]<lad[t-1][j]-0.05)dec++;}tr.push({inc:inc,dec:dec});}
+    var recent=tr.slice(-4),prog=recent.filter(function(x){return x.inc>=1&&x.dec===0;});
+    if(recent.length>=2&&prog.length/recent.length>=0.66&&tr[tr.length-1].dec===0){
+      var ks=prog.map(function(x){return x.inc;}).sort(function(a,b){return a-b;}),k=Math.max(1,Math.min(nSets-1,ks[Math.floor(ks.length/2)]));
+      var L=lad[lad.length-1].slice(),nx=L.slice();
+      if(lastRpe<9){
+        for(var q=0;q<k;q++){
+          var mx=Math.max.apply(null,nx),idx=-1;
+          for(var r=nx.length-1;r>=0;r--){if(nx[r]<mx-0.05){idx=r;break;}}
+          if(idx>=0)nx[idx]=Math.min(mx,Math.round((nx[idx]+step)*10)/10);
+          else nx[nx.length-1]=Math.round((nx[nx.length-1]+step)*10)/10;
+        }
+      }
+      res=nx.map(function(v,j){return{v:v,last:L[j],up:v>L[j]+0.05};});
+      return{sets:res,step:step,conf:st.conf,pattern:'ladder'};
+    }
+  }
   return{sets:res,step:step,conf:st.conf};
 }
 
@@ -2653,7 +2675,7 @@ function bCard(ex,gk,td,refDay,focused){
   '</div>';
   var extra='<div class="exc-extra">'+
     rpeHtml+
-    (isAbs?'':fcPillHtml(ex.id,gk))+
+    (isAbs||!sfc?'':(function(){var f=calcForecast(ex.id);return '<div class="fc-pill" onclick="openProgModal(\''+ex.id+'\')"><span style="flex:1">&#128302; Previsión: '+sfc.sets.filter(function(x){return x;}).map(function(x){return x.up?'<b>'+fmtN(x.v)+'</b>':fmtN(x.v);}).join(' · ')+' '+u+(sfc.pattern==='ladder'?'<br><span style="font-size:11px;color:var(--mu)">Subes una serie por sesión</span>':'')+'</span>'+(f&&!f.few?'<span class="fc-st '+f.status.k+'">'+f.status.t+'</span>':'')+'</div>';})())+
     (isFat?'<div class="fc-pill" style="border-color:rgba(204,41,54,0.3);background:rgba(204,41,54,0.08);color:var(--red2)">&#9888; Por debajo de la última sesión — posible fatiga</div>':'')+
     tfHtml+timerHtml+
     '<div class="exc-cfg">Descanso <input type="number" inputmode="numeric" min="5" max="600" value="'+rs+'" onchange="sRest(\''+ex.id+'\',this.value)" onfocus="this.select()"> s'+(pr?'<span style="margin-left:auto">PR <b style="color:var(--gold)">'+pr+' '+u+'</b></span>':'')+'</div>'+
