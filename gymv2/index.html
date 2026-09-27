@@ -752,6 +752,14 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .pw-save,.ai-btn{background:var(--acc)!important;color:#000!important;font-weight:800}
 .ai-card{background:var(--s1)!important;border:none!important}
 .h-go2{background:var(--s2)!important;color:var(--tx)!important}.h-ring{cursor:pointer}
+.h-bar{position:relative}
+.h-avg{position:absolute;left:4px;right:4px;bottom:80%;height:2px;border-radius:1px;background:#f4f4f2;box-shadow:0 0 0 1px rgba(0,0,0,.55);opacity:.8;z-index:2}
+.h-bar span.dn{background:rgba(200,245,66,.38)}
+.h-bar span.cardio{background:#3a3a3a}
+.h-wd-p{font-size:10px;font-weight:700;height:13px;margin-top:1px;color:var(--mu)}
+.h-wd-p.up{color:var(--acc)}
+.h-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu);margin-top:10px}
+.h-legend i{display:inline-block;width:14px;height:2px;border-radius:1px;background:rgba(244,244,242,.5)}
 </style>
 </head>
 <body>
@@ -1065,13 +1073,19 @@ function renderHome(){
   var h=now.getHours(),gr=h<6?'Buenas noches':h<14?'Buenos días':h<21?'Buenas tardes':'Buenas noches';
   var streak=calcStreak();
 
-  // Week: volume per day (cardio-only days count as a small bar)
-  var vols=days.map(function(d){var v=0;Object.keys(G).forEach(function(gk){G[gk].exs.forEach(function(ex){v+=calcVolumeDay(ex.id,d);});});var r=histDay(d);return{d:d,v:v,any:r.any};});
-  var mx=Math.max.apply(null,vols.map(function(x){return x.v;}))||1,trained=vols.filter(function(x){return x.any;}).length;
+  // Week: each day's volume compared with your usual volume for the groups trained that day
+  var vols=days.map(function(d){var r=histDay(d),v=0,avg=0,hasAvg=false;
+    Object.keys(r.groups).forEach(function(gk){var gv=groupVolDay(gk,d);v+=gv;var a=groupAvgVol(gk,d);if(a){avg+=a;hasAvg=true;}else avg+=gv;});
+    return{d:d,v:v,avg:hasAvg?avg:0,any:r.any,gym:Object.keys(r.groups).length>0};});
+  var trained=vols.filter(function(x){return x.any;}).length;
   var goal=Math.max(parseInt(ud.weekGoal)||4,1),pct=Math.min(trained/goal,1),C=2*Math.PI*38;
   var dn=['L','M','X','J','V','S','D'];
-  var weekHtml=vols.map(function(x,i){var hgt=x.v?Math.max(18,Math.round(x.v/mx*100)):(x.any?18:0);
-    return '<div class="h-wd'+(x.d===today?' today':'')+'" onclick="openHistDay(\''+x.d+'\')"><div class="h-bar"><span style="height:'+hgt+'%"></span></div><div class="h-wd-l">'+dn[i]+'</div></div>';}).join('');
+  // Full bar = 125% of your average; the line marks 100% (your average)
+  var weekHtml=vols.map(function(x,i){
+    var hgt=0,cls='',pctTxt='';
+    if(x.gym&&x.v){var ratio=x.avg?x.v/x.avg:1;hgt=Math.max(12,Math.round(Math.min(ratio,1.25)/1.25*100));cls=ratio>=0.97?' up':' dn';if(x.avg){var pc=Math.round((ratio-1)*100);pctTxt=Math.abs(pc)<3?'= media':(pc>0?'+':'')+pc+'%';}}
+    else if(x.any){hgt=12;cls=' cardio';}
+    return '<div class="h-wd'+(x.d===today?' today':'')+'" onclick="openHistDay(\''+x.d+'\')"><div class="h-bar"><i class="h-avg"></i><span class="'+cls.trim()+'" style="height:'+hgt+'%"></span></div><div class="h-wd-l">'+dn[i]+'</div><div class="h-wd-p'+cls+'">'+pctTxt+'</div></div>';}).join('');
 
   // Next group, learnt from history: which group usually follows the last one
   var sug=suggestNextGroup(),nextHtml='';
@@ -1110,8 +1124,16 @@ function renderHome(){
     '<div class="h-top"><div><div class="h-date">'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})(now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))+'</div><div class="h-hi">'+gr+(name?', '+name:'')+'</div></div><button class="h-sync sync-btn" onclick="syncNow()">&#8635;</button></div>'+
     '<div class="h-card h-hero"><div><div class="h-lbl">Racha</div><div class="h-big">'+streak+'<small>'+(streak===1?'semana':'semanas')+'</small></div><div class="h-sub">'+icon('fire')+(streak?'Semanas seguidas entrenando':'Entrena esta semana para empezarla')+'</div><div class="h-sub" style="margin-top:4px;display:block">Esta semana: '+trained+' de '+goal+' días'+(trained>=goal?' · <span style="color:var(--acc)">objetivo cumplido</span>':'')+'</div></div>'+
       '<div class="h-ring" onclick="editWeekGoal()"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke="#1f1f1f" stroke-width="9"/><circle cx="46" cy="46" r="38" fill="none" stroke="var(--acc)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pct)).toFixed(1)+'"/></svg><div class="h-ring-t"><b>'+trained+'<span style="font-size:13px;color:var(--mu)">/'+goal+'</span></b><span>'+(trained>=goal?'&#10003; objetivo':'días/sem')+'</span></div></div></div>'+
-    '<div class="h-card"><div class="h-week">'+weekHtml+'</div></div>'+
+    '<div class="h-card"><div class="h-week">'+weekHtml+'</div><div class="h-legend"><i></i>Tu media de ese grupo · barra llena = +25%</div></div>'+
     nextHtml+tiles+rows;
+}
+function groupVolDay(gk,d){var v=0;if(G[gk])G[gk].exs.forEach(function(ex){v+=calcVolumeDay(ex.id,d);});return v;}
+// Average volume of this group's previous sessions (last 8, before the given day)
+function groupAvgVol(gk,d){
+  if(!G[gk])return 0;var ds={};
+  G[gk].exs.forEach(function(ex){getAllDaysWithData(ex.id).forEach(function(x){if(x<d)ds[x]=1;});});
+  var list=Object.keys(ds).sort().slice(-8).map(function(x){return groupVolDay(gk,x);}).filter(function(v){return v>0;});
+  return list.length?list.reduce(function(a,b){return a+b;},0)/list.length:0;
 }
 function editWeekGoal(){
   var cur=Math.max(parseInt(ud.weekGoal)||4,1),v=prompt('¿Cuántos días quieres entrenar por semana?',cur);
