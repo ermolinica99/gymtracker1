@@ -760,6 +760,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .h-wd-p.up{color:var(--acc)}
 .h-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu);margin-top:10px}
 .h-legend i{display:inline-block;width:14px;height:2px;border-radius:1px;background:rgba(244,244,242,.5)}
+.exc-set-up{color:var(--acc);font-weight:700}
 </style>
 </head>
 <body>
@@ -2111,6 +2112,56 @@ function renderCalBody(){
   }
 }
 
+// ── PER-SET FORECAST ───────────────────────────────────────────────────────────
+// Weight step of an exercise, learnt from the jumps you have made (5, 7.5, 10, 4.5…)
+function exStep(id,isAbs){
+  if(isAbs)return{step:1,conf:1};
+  var ds=ud.series&&ud.series[id]?Object.keys(ud.series[id]).sort():[],diffs=[],prev=null;
+  ds.forEach(function(d){var s=(ud.series[id][d]||[]).map(parseFloat);
+    for(var i=0;i<s.length;i++){if(isNaN(s[i])||s[i]<=0)continue;
+      if(i>0&&!isNaN(s[i-1])&&s[i-1]>0){var a=Math.abs(s[i]-s[i-1]);if(a>0.05)diffs.push(a);}
+      if(prev&&!isNaN(prev[i])&&prev[i]>0){var b=Math.abs(s[i]-prev[i]);if(b>0.05)diffs.push(b);}}
+    if(s.some(function(v){return !isNaN(v)&&v>0;}))prev=s;});
+  if(diffs.length<2)return{step:2.5,conf:0};
+  var cands={};[1,1.25,2,2.5,4,4.5,5,7.5,10,12.5,15,20].forEach(function(c){cands[c]=1;});
+  diffs.forEach(function(d){cands[Math.round(d*10)/10]=1;});
+  var best=2.5,bs=-1;
+  Object.keys(cands).map(parseFloat).sort(function(a,b){return b-a;}).forEach(function(c){
+    if(c<0.5)return;var ok=diffs.filter(function(d){var r=d/c;return Math.abs(r-Math.round(r))<0.08&&Math.round(r)>=1;}).length/diffs.length;
+    if(ok>=0.9&&bs<0.9){best=c;bs=ok;}else if(bs<0.9&&ok>bs){best=c;bs=ok;}
+  });
+  return{step:best,conf:bs};
+}
+// Per-set history: one value per session for each set index
+function setHistory(id,before){
+  var ds=ud.series&&ud.series[id]?Object.keys(ud.series[id]).filter(function(d){return d<before;}).sort():[],out=[];
+  ds.forEach(function(d){var s=(ud.series[id][d]||[]).map(parseFloat);if(s.some(function(v){return !isNaN(v)&&v>0;}))out.push({d:d,s:s});});
+  return out;
+}
+// Forecast each set: keep the weight until you usually move up, then add your usual jump
+function setForecast(id,before,nSets,isAbs){
+  var st=exStep(id,isAbs),step=st.step,h=setHistory(id,before);
+  if(!h.length)return null;
+  var lastRpe=getRPE(id,h[h.length-1].d),res=[];
+  for(var i=0;i<nSets;i++){
+    var vals=h.map(function(x){return x.s[i];}).filter(function(v){return !isNaN(v)&&v>0;}).slice(-12);
+    if(!vals.length){res.push(null);continue;}
+    var last=vals[vals.length-1],ups=[],since=0;
+    for(var k=1;k<vals.length;k++){if(vals[k]>vals[k-1]+0.05)ups.push({k:k,d:vals[k]-vals[k-1]});}
+    for(var k2=vals.length-1;k2>0&&!(vals[k2]>vals[k2-1]+0.05);k2--)since++;
+    if(!ups.length){since=vals.length-1;}
+    var next=last,reason='mantener';
+    if(ups.length){
+      var every=Math.max(1,Math.round((vals.length-1)/ups.length));
+      var jumps=ups.map(function(u){return Math.max(1,Math.round(u.d/step));}).sort(function(a,b){return a-b;});
+      var jump=jumps[Math.floor(jumps.length/2)]*step;
+      if(since+1>=every&&lastRpe<9){next=last+jump;reason='subir';}
+    }
+    res.push({v:Math.round(next*10)/10,last:last,up:next>last});
+  }
+  return{sets:res,step:step,conf:st.conf};
+}
+
 // ── PREVISIONES ────────────────────────────────────────────────────────────────
 // Adaptive weekly forecast per exercise (damped Holt exponential smoothing):
 // each new week updates the level and the trend, so beating the forecast raises
@@ -2505,24 +2556,25 @@ function bCard(ex,gk,td,refDay,focused){
   // Meta line: done -> what you did; otherwise series · last time · forecast
   var meta;
   var lm=last?getMeanForDay(ex.id,last.date):null,obj=null;
-  if(!isAbs){var fc=calcForecast(ex.id);obj=fc&&!fc.few&&fc.cur!==null?fc.cur:null;if(lm!==null&&(obj===null||obj<lm))obj=lm;}
+  var sfc=setForecast(ex.id,td,ser.sets,isAbs),stepInfo=sfc?{step:sfc.step,conf:sfc.conf}:exStep(ex.id,isAbs);
+  var objStr=sfc?sfc.sets.filter(function(x){return x;}).map(function(x){return (x.up?'<b class="obj">':'<b>')+fmtN(x.v)+'</b>';}).join(' · '):'';
   if(isDone&&hasToday)meta=serData.filter(function(v){return v!==null&&v!=='';}).map(fmtN).join(' · ')+' '+u;
   else{
-    var bits=focused?[ex.s]:[];
-    if(lm!==null)bits.push('Última <b>'+lm+'</b>');
-    if(obj!==null)bits.push('Objetivo <b class="obj">'+obj+'</b>');
-    if(!bits.length)bits.push(ex.s);
-    meta=bits.join(' · ');
+    if(focused)meta=ex.s+(stepInfo.conf>=0.6?' · saltos de '+fmtN(stepInfo.step)+' '+u:'')+(sfc&&sfc.sets.some(function(x){return x&&x.up;})?' · <b class="obj">toca subir</b>':'');
+    else meta=objStr?'Hoy: '+objStr+' '+u:ex.s;
   }
 
   // Sets
   var cols=Math.min(ser.sets,4),setsHtml='<div class="exc-sets" style="grid-template-columns:repeat('+cols+',1fr)">';
   for(var si=0;si<Math.max(ser.sets,serData.length);si++){
     var val=serData[si]!==null&&serData[si]!==undefined&&serData[si]!==''?serData[si]:'';
-    var ph=ref&&ref.sets[si]!==null&&ref.sets[si]!==undefined&&ref.sets[si]!==''?fmtN(ref.sets[si]):'–';
+    var refV=ref&&ref.sets[si]!==null&&ref.sets[si]!==undefined&&ref.sets[si]!==''?fmtN(ref.sets[si]):null;
+    var fcS=sfc&&sfc.sets[si]?sfc.sets[si]:null;
+    var ph=fcS?fmtN(fcS.v):(refV!==null?refV:'–');
+    var sub=fcS&&val===''?(fcS.up?'<span class="exc-set-up">antes '+fmtN(fcS.last)+'</span>':u):u;
     setsHtml+='<label class="exc-set'+(val!==''?' filled':'')+'"><span class="exc-set-n">S'+(si+1)+'</span>'+
       '<input type="number" inputmode="decimal" step="0.5" enterkeyhint="next" placeholder="'+ph+'" value="'+val+'" data-i="'+si+'" onchange="onSetChange(\''+ex.id+'\',\''+td+'\','+si+',this)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();focusNextSet(this);}" onfocus="this.select()">'+
-      '<span class="exc-set-u">'+u+'</span></label>';
+      '<span class="exc-set-u">'+sub+'</span></label>';
   }
   setsHtml+='</div>';
 
@@ -2531,17 +2583,18 @@ function bCard(ex,gk,td,refDay,focused){
   var adjV=ejAdj[ex.id];
   if(adjV===undefined||adjV===null){
     if(nextIdx>0&&serData[nextIdx-1]!==null&&serData[nextIdx-1]!==undefined&&serData[nextIdx-1]!=='')adjV=parseFloat(serData[nextIdx-1]);
+    else if(sfc&&nextIdx>=0&&sfc.sets[nextIdx])adjV=sfc.sets[nextIdx].v;
     else if(ref&&nextIdx>=0&&ref.sets[nextIdx]!==null&&ref.sets[nextIdx]!==undefined&&ref.sets[nextIdx]!=='')adjV=parseFloat(ref.sets[nextIdx]);
     else adjV=obj!==null?obj:(lm!==null?lm:0);
   }
-  var step=isAbs?1:2.5;
+  var step=stepInfo.conf>=0.6||isAbs?stepInfo.step:2.5;
   var actions=(nextIdx>=0?
-    '<div class="adj"><button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+(-step)+')">&minus; '+step+'</button>'+
+    '<div class="adj"><button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+(-step)+')">&minus; '+fmtN(step)+'</button>'+
       '<button class="adj-v" onclick="ejLogNext(\''+ex.id+'\',\''+td+'\')"><b><span id="adjv_'+ex.id+'">'+fmtN(adjV)+'</span> '+u+'</b><span>Guardar serie '+(nextIdx+1)+'</span></button>'+
-      '<button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+step+')">+ '+step+'</button></div>':'')+
+      '<button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+step+')">+ '+fmtN(step)+'</button></div>':'')+
     '<div class="exc-actions">'+
     '<button class="exc-btn rest" id="tb_'+ex.id+'" onclick="startRestTimer(this,\''+ex.id+'\')">'+icon('timer','ic sm')+' <span id="tv_'+ex.id+'">'+fmt(rs)+'</span></button>'+
-    (!hasToday&&ref?'<button class="exc-btn copy" onclick="repeatLast(\''+ex.id+'\',\''+td+'\')">Repetir última</button>':'')+
+    (!hasToday&&(sfc||ref)?'<button class="exc-btn copy" onclick="repeatLast(\''+ex.id+'\',\''+td+'\')">Rellenar todo</button>':'')+
     '<button class="exc-btn more" onclick="toggleEjOpen(\''+ex.id+'\')">'+(open?'Menos':'Más')+'</button>'+
   '</div>';
   ejAdj[ex.id]=adjV;
