@@ -976,7 +976,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-3';
+var APP_VERSION='2026.09.27-4';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -2174,7 +2174,8 @@ function setForecast(id,before,nSets,isAbs){
     for(var k2=vals.length-1;k2>0&&!(vals[k2]>vals[k2-1]+0.05);k2--)since++;
     if(!ups.length){since=vals.length-1;}
     var next=last,reason='mantener';
-    if(ups.length){
+    // Only predict a jump with enough history for this set
+    if(ups.length&&vals.length>=4){
       var every=Math.max(1,Math.round((vals.length-1)/ups.length));
       var jumps=ups.map(function(u){return Math.max(1,Math.round(u.d/step));}).sort(function(a,b){return a-b;});
       var jump=jumps[Math.floor(jumps.length/2)]*step;
@@ -2550,7 +2551,7 @@ function renderEj(){
   setTimeout(function(){drawAllMiniCharts();},80);
 }
 
-var ejOpen={},ejFocusSel=null,ejFocusId=null,ejAdj={};
+var ejOpen={},ejFocusSel=null,ejFocusId=null,ejAdj={},ejAdjK={};
 // Last session's sets before a date (used as grey reference)
 function lastSeriesBefore(id,date){
   if(!ud.series||!ud.series[id])return null;
@@ -2613,12 +2614,18 @@ function bCard(ex,gk,td,refDay,focused){
 
   // Quick logger: next empty set, value = last time for that set (or objective), ±2.5
   var nextIdx=-1;for(var ni=0;ni<ser.sets;ni++){if(serData[ni]===null||serData[ni]===undefined||serData[ni]===''){nextIdx=ni;break;}}
+  // The value belongs to this day and this set; recompute when either changes
+  var adjKey=td+'_'+nextIdx;
+  if(ejAdjK[ex.id]!==adjKey){ejAdj[ex.id]=null;ejAdjK[ex.id]=adjKey;}
   var adjV=ejAdj[ex.id];
   if(adjV===undefined||adjV===null){
-    if(nextIdx>0&&serData[nextIdx-1]!==null&&serData[nextIdx-1]!==undefined&&serData[nextIdx-1]!=='')adjV=parseFloat(serData[nextIdx-1]);
-    else if(sfc&&nextIdx>=0&&sfc.sets[nextIdx])adjV=sfc.sets[nextIdx].v;
+    // Forecast for this set first; if you already went heavier/lighter on the
+    // previous set than planned, carry that difference over
+    if(sfc&&nextIdx>=0&&sfc.sets[nextIdx]){adjV=sfc.sets[nextIdx].v;
+      if(nextIdx>0&&sfc.sets[nextIdx-1]&&serData[nextIdx-1]!==null&&serData[nextIdx-1]!==undefined&&serData[nextIdx-1]!==''){var dlt=parseFloat(serData[nextIdx-1])-sfc.sets[nextIdx-1].v;if(!isNaN(dlt))adjV=Math.max(0,Math.round((adjV+dlt)*10)/10);}}
+    else if(nextIdx>0&&serData[nextIdx-1]!==null&&serData[nextIdx-1]!==undefined&&serData[nextIdx-1]!=='')adjV=parseFloat(serData[nextIdx-1]);
     else if(ref&&nextIdx>=0&&ref.sets[nextIdx]!==null&&ref.sets[nextIdx]!==undefined&&ref.sets[nextIdx]!=='')adjV=parseFloat(ref.sets[nextIdx]);
-    else adjV=obj!==null?obj:(lm!==null?lm:0);
+    else{var lastSet=last&&nextIdx>=0?parseFloat(last.sets[nextIdx]):NaN;adjV=!isNaN(lastSet)?lastSet:(last?parseFloat(last.sets.filter(function(v){return !isNaN(parseFloat(v));}).slice(-1)[0])||0:0);}
   }
   var step=stepInfo.conf>=0.6||isAbs?stepInfo.step:2.5;
   var actions=(nextIdx>=0?
