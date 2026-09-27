@@ -767,6 +767,10 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .exc-prev-r{display:flex;justify-content:space-between;gap:10px;padding:8px 0;font-size:13px;cursor:pointer}
 .exc-prev-r+.exc-prev-r{border-top:1px solid #1c1c1c}
 .exc-prev-r span{color:var(--mu);white-space:nowrap}.exc-prev-r b{font-weight:700;color:var(--mu3);text-align:right}
+.fc-why{font-size:12px;color:var(--mu3);margin:8px 0 2px;line-height:1.35}
+.fc-rows{margin-top:10px;background:var(--s2);border-radius:12px;padding:2px 12px}
+.fc-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;font-size:13px}.fc-row+.fc-row{border-top:1px solid #222}
+.fc-row span{color:var(--mu)}.fc-row b{font-weight:700;text-align:right}.fc-row b .obj,.fc-tbl .obj{color:var(--acc)}
 </style>
 </head>
 <body>
@@ -976,7 +980,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-5';
+var APP_VERSION='2026.09.27-6';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -1130,7 +1134,7 @@ function renderHome(){
     if(first&&first!==bw[bw.length-1]){var dd=Math.round((ud.bodyWeight[bw[bw.length-1]]-ud.bodyWeight[first])*10)/10;bwSub='Peso · <span class="'+(dd<=0?'h-up':'h-dn')+'">'+(dd>0?'+':'')+dd+' este mes</span>';}else bwSub='Peso corporal';}
   var ms=histMonthStats(now.getFullYear(),now.getMonth()),pm=now.getMonth()?now.getMonth()-1:11,py=now.getMonth()?now.getFullYear():now.getFullYear()-1,pms=histMonthStats(py,pm);
   var volPct=pms.vol?Math.round((ms.vol-pms.vol)/pms.vol*100):null;
-  var fcBeat=0,fcTot=0;Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){var f=calcForecast(ex.id);if(f&&!f.few){fcTot++;if(f.status.k==='beat'||f.status.k==='up')fcBeat++;}});});
+  var fcBeat=0,fcTot=0;Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){var f=sfStatus(ex.id);if(f){fcTot++;if(f.k==='beat'||f.k==='up')fcBeat++;}});});
   var tiles='<div class="h-tiles">'+
     '<div class="h-tile" onclick="goMain(\'peso\')">'+icon('scale')+'<div class="h-tv">'+bwTxt+'</div><div class="h-tl">'+bwSub+'</div></div>'+
     '<div class="h-tile" onclick="goMain(\'hist\')">'+icon('bolt')+'<div class="h-tv">'+(ms.vol>=1000?Math.round(ms.vol/100)/10+'<small>t</small>':ms.vol+'<small>kg</small>')+'</div><div class="h-tl">Volumen del mes'+(volPct!==null?' · <span class="'+(volPct>=0?'h-up':'h-dn')+'">'+(volPct>=0?'+':'')+volPct+'%</span>':'')+'</div></div>'+
@@ -1876,9 +1880,9 @@ function renderIAAnalysis(container){
   // Progression opportunities
   gks.forEach(function(gk){
     G[gk].exs.forEach(function(ex){
-      var fc=gk==='abdominales'?null:calcForecast(ex.id);
-      if(fc&&fc.status.k==='beat')suggestions.push({icon:'&#128640;',color:'var(--gr)',text:ex.name+': superando la prevision — la semana que viene '+fc.next+' kg'});
-      else if(fc&&fc.status.k==='down')suggestions.push({icon:'&#9888;',color:'var(--red2)',text:ex.name+': por debajo de lo previsto — revisa descanso y tecnica'});
+      var fst=gk==='abdominales'?null:sfStatus(ex.id),fpj=fst?sfProject(ex.id,1):[];
+      if(fst&&fst.k==='beat')suggestions.push({icon:'&#128640;',color:'var(--gr)',text:ex.name+': superando la previsión — próxima '+(fpj[0]?sfStr(fpj[0].sets,'kg',false):'')});
+      else if(fst&&fst.k==='down')suggestions.push({icon:'&#9888;',color:'var(--red2)',text:ex.name+': por debajo de lo previsto — revisa descanso y tecnica'});
     });
   });
 
@@ -2162,10 +2166,10 @@ function setHistory(id,before){
   return out;
 }
 // Forecast each set: keep the weight until you usually move up, then add your usual jump
-function setForecast(id,before,nSets,isAbs){
-  var st=exStep(id,isAbs),step=st.step,h=setHistory(id,before);
+// Core: forecast the next session from a history [{d,s:[...]}]; returns sets + why
+function sfCore(h,nSets,step,lastRpe){
   if(!h.length)return null;
-  var lastRpe=getRPE(id,h[h.length-1].d),res=[];
+  var res=[],wouldUp=false,upEvery=null;
   for(var i=0;i<nSets;i++){
     var vals=h.map(function(x){return x.s[i];}).filter(function(v){return !isNaN(v)&&v>0;}).slice(-12);
     if(!vals.length){res.push(null);continue;}
@@ -2173,28 +2177,29 @@ function setForecast(id,before,nSets,isAbs){
     for(var k=1;k<vals.length;k++){if(vals[k]>vals[k-1]+0.05)ups.push({k:k,d:vals[k]-vals[k-1]});}
     for(var k2=vals.length-1;k2>0&&!(vals[k2]>vals[k2-1]+0.05);k2--)since++;
     if(!ups.length){since=vals.length-1;}
-    var next=last,reason='mantener';
+    var next=last;
     // Only predict a jump with enough history for this set
     if(ups.length&&vals.length>=4){
       var every=Math.max(1,Math.round((vals.length-1)/ups.length));
       var jumps=ups.map(function(u){return Math.max(1,Math.round(u.d/step));}).sort(function(a,b){return a-b;});
       var jump=jumps[Math.floor(jumps.length/2)]*step;
-      if(since+1>=every&&lastRpe<9){next=last+jump;reason='subir';}
+      if(since+1>=every){wouldUp=true;upEvery=every;if(lastRpe<9)next=last+jump;}
     }
-    res.push({v:Math.round(next*10)/10,last:last,up:next>last});
+    res.push({v:Math.round(next*10)/10,last:last,up:next>last+0.05});
   }
+  var pattern=null;
   // Ladder pattern across sets: each session one (or k) more set moves up,
   // right to left, until all are equal; then the last set starts the next level.
   // e.g. 40·40·50·50 → 40·50·50·50 → 50·50·50·50 → 50·50·50·55
-  var lad=h.slice(-5).map(function(x){return x.s.slice(0,nSets).map(function(v){return isNaN(v)||v<=0?null:v;});}).filter(function(a){return a.every(function(v){return v!==null;})&&a.length===nSets;});
+  var lad=h.slice(-5).map(function(x){return x.s.slice(0,nSets).map(function(v){return isNaN(v)||v<=0?null:v;});}).filter(function(a){return a.length===nSets&&a.every(function(v){return v!==null;});});
   if(nSets>1&&lad.length>=3){
     var tr=[];for(var t=1;t<lad.length;t++){var inc=0,dec=0;for(var j=0;j<nSets;j++){if(lad[t][j]>lad[t-1][j]+0.05)inc++;else if(lad[t][j]<lad[t-1][j]-0.05)dec++;}tr.push({inc:inc,dec:dec});}
     var recent=tr.slice(-4),prog=recent.filter(function(x){return x.inc>=1&&x.dec===0;});
     if(recent.length>=2&&prog.length/recent.length>=0.66&&tr[tr.length-1].dec===0){
-      var ks=prog.map(function(x){return x.inc;}).sort(function(a,b){return a-b;}),k=Math.max(1,Math.min(nSets-1,ks[Math.floor(ks.length/2)]));
-      var L=lad[lad.length-1].slice(),nx=L.slice();
+      var ks=prog.map(function(x){return x.inc;}).sort(function(a,b){return a-b;}),kk=Math.max(1,Math.min(nSets-1,ks[Math.floor(ks.length/2)]));
+      var L=lad[lad.length-1].slice(),nx=L.slice();wouldUp=true;
       if(lastRpe<9){
-        for(var q=0;q<k;q++){
+        for(var q=0;q<kk;q++){
           var mx=Math.max.apply(null,nx),idx=-1;
           for(var r=nx.length-1;r>=0;r--){if(nx[r]<mx-0.05){idx=r;break;}}
           if(idx>=0)nx[idx]=Math.min(mx,Math.round((nx[idx]+step)*10)/10);
@@ -2202,10 +2207,68 @@ function setForecast(id,before,nSets,isAbs){
         }
       }
       res=nx.map(function(v,j){return{v:v,last:L[j],up:v>L[j]+0.05};});
-      return{sets:res,step:step,conf:st.conf,pattern:'ladder'};
+      pattern='ladder';
     }
   }
-  return{sets:res,step:step,conf:st.conf};
+  // Why, in one line
+  var ups=[];res.forEach(function(x,i){if(x&&x.up)ups.push('S'+(i+1)+' a '+fmtN(x.v));});
+  var why,short;
+  if(ups.length){why='Toca subir '+ups.join(', ')+(pattern==='ladder'?': vas subiendo '+(ups.length>1?ups.length+' series':'una serie')+' por sesión':(upEvery?': sueles subir cada '+upEvery+' sesiones':''));short='toca subir';}
+  else if(wouldUp&&lastRpe>=9){why='Mantienes el peso: tu último RPE fue '+lastRpe+'. Si hoy va mejor, sube.';short='mantener (RPE '+lastRpe+')';}
+  else if(h.length<3){why='Pocos datos todavía: repite lo de la última vez.';short='repetir';}
+  else{why='Mantienes el peso: aún no toca subir según tu ritmo.';short='mantener';}
+  return{sets:res,pattern:pattern,why:why,short:short};
+}
+function setForecast(id,before,nSets,isAbs){
+  var st=exStep(id,isAbs),h=setHistory(id,before);
+  if(!h.length)return null;
+  var f=sfCore(h,nSets,st.step,getRPE(id,h[h.length-1].d));
+  f.step=st.step;f.conf=st.conf;return f;
+}
+function exInfo(id){var gk=Object.keys(G).find(function(g){return G[g].exs.some(function(e){return e.id===id;});}),ex=fEx(id);return{gk:gk,ex:ex,isAbs:gk==='abdominales',n:ex?parseSeries(ex.s).sets:4,u:gk==='abdominales'?'reps':'kg'};}
+// Next n sessions, each built on the previous prediction
+function sfProject(id,n){
+  var I=exInfo(id),st=exStep(id,I.isAbs),h=setHistory(id,'9999-12-31'),out=[];
+  if(!h.length)return out;
+  var rpe=getRPE(id,h[h.length-1].d);
+  for(var i=0;i<n;i++){var f=sfCore(h,I.n,st.step,rpe);if(!f)break;out.push(f);h=h.concat([{d:'p'+i,s:f.sets.map(function(x){return x?x.v:NaN;})}]);rpe=0;}
+  return out;
+}
+// Past sessions: what was forecast vs what you did, set by set
+function sfBacktest(id){
+  var I=exInfo(id),st=exStep(id,I.isAbs),h=setHistory(id,'9999-12-31'),out=[],ok=0,tot=0;
+  for(var i=2;i<h.length;i++){
+    var f=sfCore(h.slice(0,i),I.n,st.step,getRPE(id,h[i-1].d));if(!f)continue;
+    var pr=f.sets.map(function(x){return x?x.v:null;}),act=h[i].s.slice(0,I.n),diff=0,cnt=0;
+    pr.forEach(function(v,j){if(v===null||isNaN(act[j]))return;cnt++;tot++;if(Math.abs(act[j]-v)<0.05)ok++;diff+=act[j]-v;});
+    out.push({d:h[i].d,pred:pr,act:act,diff:diff,cnt:cnt});
+  }
+  return{rows:out,hit:tot?Math.round(ok/tot*100):null};
+}
+// Status from the per-set system: beat / up / flat / down
+function sfStatus(id){
+  var bt=sfBacktest(id),r=bt.rows.slice(-3),beat=r.filter(function(x){return x.diff>0.05;}).length,miss=r.filter(function(x){return x.diff<-0.05;}).length;
+  var h=setHistory(id,'9999-12-31');if(h.length<3)return null;
+  var top=function(x){return Math.max.apply(null,x.s.filter(function(v){return !isNaN(v);}).concat([0]));};
+  var a=top(h[Math.max(0,h.length-5)]),b=top(h[h.length-1]);
+  var last=h[h.length-1].d,ago=Math.round((new Date(todayStr()+'T12:00:00')-new Date(last+'T12:00:00'))/86400000);
+  if(ago>21)return{k:'flat',t:'Sin entrenar '+Math.round(ago/7)+' sem'};
+  if(r.length>=2&&beat>=2)return{k:'beat',t:'Superando previsión'};
+  if(r.length>=2&&miss>=2)return{k:'down',t:'Por debajo'};
+  if(b>a+0.05)return{k:'up',t:'Mejorando'};
+  if(b<a-0.05)return{k:'down',t:'Bajando'};
+  return{k:'flat',t:'Estancado'};
+}
+function sfStr(sets,u,boldUp){return sets.filter(function(x){return x;}).map(function(x){return boldUp&&x.up?'<b class="obj">'+fmtN(x.v)+'</b>':fmtN(x.v);}).join(' · ')+(u?' '+u:'');}
+function sfSvg(id){
+  var h=setHistory(id,'9999-12-31').slice(-10),pj=sfProject(id,4);if(h.length<2)return '';
+  var top=function(arr){var m=0;arr.forEach(function(v){if(!isNaN(v)&&v>m)m=v;});return m;};
+  var act=h.map(function(x){return top(x.s);}),fut=pj.map(function(f){return top(f.sets.map(function(x){return x?x.v:NaN;}));});
+  var all=act.concat(fut),mn=Math.min.apply(null,all),mx=Math.max.apply(null,all),rg=(mx-mn)||1,W=300,H=70,P=6,n=all.length;
+  function X(i){return P+(W-2*P)*i/Math.max(n-1,1);}function Y(v){return H-P-(H-2*P)*(v-mn)/rg;}
+  var a=act.map(function(v,i){return X(i)+','+Y(v);}).join(' ');
+  var f=[X(act.length-1)+','+Y(act[act.length-1])].concat(fut.map(function(v,i){return X(act.length+i)+','+Y(v);})).join(' ');
+  return '<svg class="fc-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polyline points="'+f+'" fill="none" stroke="#f4f4f2" stroke-opacity=".6" stroke-width="2" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/><polyline points="'+a+'" fill="none" stroke="#c8f542" stroke-width="2.5" vector-effect="non-scaling-stroke"/></svg>';
 }
 
 // ── PREVISIONES ────────────────────────────────────────────────────────────────
@@ -2298,49 +2361,50 @@ function fcPillHtml(id,gk){
   return '<div class="fc-pill" onclick="openProgModal(\''+id+'\')"><span style="flex:1">'+t+'</span><span class="fc-st '+fc.status.k+'">'+fc.status.t+'</span></div>';
 }
 function fcDetailHtml(id){
-  var fc=calcForecast(id);if(!fc||fc.few)return '<div class="fc-note" style="margin-top:14px">&#128302; Con 2 semanas de datos empezaré a hacer previsiones.</div>';
-  var gk=Object.keys(G).find(function(g){return G[g].exs.some(function(e){return e.id===id;});}),u=fcUnit(gk);
-  var h='<div class="fc-sec">&#128302; Previsión próximas semanas</div><table class="fc-tbl">';
-  fc.next4.forEach(function(n,i){h+='<tr><td>Semana del '+fcWeekLbl(n.w)+(i===0?' (próxima)':'')+'</td><td><b class="gold-text">'+n.v+' '+u+'</b></td></tr>';});
+  var I=exInfo(id),pj=sfProject(id,4);
+  if(!pj.length)return '<div class="fc-note" style="margin-top:14px">&#128302; Cuando registres este ejercicio empezaré a hacer previsiones.</div>';
+  var h='<div class="fc-sec">&#128302; Próximas sesiones</div><div class="fc-why">'+pj[0].why+'</div><table class="fc-tbl">';
+  pj.forEach(function(f,i){h+='<tr><td>'+(i===0?'Próxima':'+'+(i+1))+'</td><td>'+sfStr(f.sets,I.u,true)+'</td></tr>';});
   h+='</table>';
-  if(fc.hist.length){
-    h+='<div class="fc-sec">Previsto vs hecho'+(fc.hit!==null?' · acierto '+fc.hit+'%':'')+'</div><table class="fc-tbl">';
-    fc.hist.slice(-6).reverse().forEach(function(x){var d=Math.round((x.act-x.pred)*10)/10,c=d>=0.5?'var(--gr)':d<=-1?'var(--red2)':'var(--mu3)';
-      h+='<tr><td>Sem. '+fcWeekLbl(x.w)+'</td><td style="color:var(--mu3)">prev. '+x.pred+'</td><td>hecho '+Math.round(x.act*10)/10+'</td><td style="color:'+c+';font-weight:700">'+(d>0?'+':'')+d+'</td></tr>';});
+  var bt=sfBacktest(id);
+  if(bt.rows.length){
+    h+='<div class="fc-sec">Previsto vs hecho'+(bt.hit!==null?' · acierto '+bt.hit+'% de series':'')+'</div><table class="fc-tbl">';
+    bt.rows.slice(-5).reverse().forEach(function(x){
+      var c=x.diff>0.05?'var(--acc)':x.diff<-0.05?'var(--red2)':'var(--mu3)',mk=x.diff>0.05?'&#9650;':x.diff<-0.05?'&#9660;':'&#10003;';
+      h+='<tr><td>'+new Date(x.d+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'})+'</td><td style="color:var(--mu3);text-align:left">'+x.pred.filter(function(v){return v!==null;}).map(fmtN).join('·')+'</td><td>'+x.act.filter(function(v){return !isNaN(v);}).map(fmtN).join('·')+'</td><td style="color:'+c+';font-weight:800">'+mk+'</td></tr>';});
     h+='</table>';
   }
-  h+='<div class="fc-note">Cada semana la previsión se recalcula con lo que haces: si la superas sube la tendencia, si no llegas baja.'+(fc.rpe>=9?' Tu último RPE fue '+fc.rpe+', así que la subida es más suave.':'')+'</div>';
+  h+='<div class="fc-note">Cada serie mantiene su peso hasta que, según tu ritmo, toca subir; entonces suma tu salto habitual. Si vas subiendo una serie por sesión, sigue esa escalera. Si tu última sesión fue RPE 9–10, mantiene.</div>';
   return h;
 }
 function renderPrev(){
   var el=document.getElementById('prev-content');if(!el)return;
-  var h='',cnt={beat:0,up:0,flat:0,down:0},cards=[],few=0;
-  Object.keys(G).forEach(function(gk){G[gk].exs.forEach(function(ex){
-    var fc=calcForecast(ex.id);if(!fc)return;if(fc.few){few++;return;}
-    cnt[fc.status.k]++;cards.push({ex:ex,gk:gk,fc:fc});
+  var h='',cnt={beat:0,up:0,flat:0,down:0},cards=[];
+  Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){
+    var st=sfStatus(ex.id);if(!st)return;cnt[st.k]++;cards.push({ex:ex,gk:gk,st:st});
   });});
-  if(!cards.length){el.innerHTML='<div class="hist-empty" style="padding:40px 20px">&#128302; Aún no hay suficientes datos.<br>Cuando un ejercicio tenga al menos 2 semanas registradas verás aquí su previsión.</div>';return;}
+  if(!cards.length){el.innerHTML='<div class="hist-empty" style="padding:40px 20px">&#128302; Aún no hay suficientes datos.<br>Con 3 sesiones de un ejercicio verás aquí su previsión.</div>';return;}
   h+='<div class="hist-sum">'+
-    '<div class="hist-st"><div class="hist-st-v" style="color:var(--gold2)">'+cnt.beat+'</div><div class="hist-st-l">Superando previsión</div></div>'+
+    '<div class="hist-st"><div class="hist-st-v" style="color:var(--acc)">'+cnt.beat+'</div><div class="hist-st-l">Superando previsión</div></div>'+
     '<div class="hist-st"><div class="hist-st-v" style="color:var(--gr)">'+cnt.up+'</div><div class="hist-st-l">Mejorando</div></div>'+
     '<div class="hist-st"><div class="hist-st-v">'+cnt.flat+'</div><div class="hist-st-l">Estancados</div></div>'+
     '<div class="hist-st"><div class="hist-st-v" style="color:var(--red2)">'+cnt.down+'</div><div class="hist-st-l">Por debajo / bajando</div></div>'+
   '</div>';
   var order={down:0,beat:1,up:2,flat:3};
-  cards.sort(function(a,b){return order[a.fc.status.k]-order[b.fc.status.k];});
+  cards.sort(function(a,b){return order[a.st.k]-order[b.st.k];});
   cards.forEach(function(c){
-    var fc=c.fc,u=fcUnit(c.gk);
-    var curTxt=fc.cur!==null?fc.cur+' '+u:'—',doneTxt=fc.done!==null?(Math.round(fc.done*10)/10)+' '+u:'pendiente';
+    var I=exInfo(c.ex.id),pj=sfProject(c.ex.id,4),hs=setHistory(c.ex.id,'9999-12-31'),last=hs[hs.length-1],bt=sfBacktest(c.ex.id);
+    var lastStr=last.s.filter(function(v){return !isNaN(v);}).map(fmtN).join(' · ')+' '+I.u;
     h+='<div class="fc-card" onclick="openProgModal(\''+c.ex.id+'\')">'+
-      '<div class="fc-top"><div><div class="fc-nm">'+c.ex.name+'</div><div class="fc-grp">'+(G[c.gk]?G[c.gk].name:c.gk)+(fc.hit!==null?' · acierto '+fc.hit+'%':'')+'</div></div><span class="fc-st '+fc.status.k+'">'+fc.status.t+'</span></div>'+
-      '<div class="fc-nums">'+
-        '<div class="fc-n"><div class="fc-n-v">'+curTxt+'</div><div class="fc-n-l">Esta semana</div></div>'+
-        '<div class="fc-n"><div class="fc-n-v" style="color:'+(fc.done===null?'var(--mu3)':fc.cur!==null&&fc.done>=fc.cur-0.5?'var(--gr)':'var(--red2)')+'">'+doneTxt+'</div><div class="fc-n-l">Hecho</div></div>'+
-        '<div class="fc-n"><div class="fc-n-v gold-text">'+fc.next4[fc.next4.length-1].v+' '+u+'</div><div class="fc-n-l">En 4 semanas</div></div>'+
-      '</div>'+fcSvg(fc)+
+      '<div class="fc-top"><div><div class="fc-nm">'+c.ex.name+'</div><div class="fc-grp">'+(G[c.gk]?G[c.gk].name:c.gk)+(bt.hit!==null?' · acierto '+bt.hit+'%':'')+'</div></div><span class="fc-st '+c.st.k+'">'+c.st.t+'</span></div>'+
+      '<div class="fc-rows">'+
+        '<div class="fc-row"><span>Última</span><b>'+lastStr+'</b></div>'+
+        (pj[0]?'<div class="fc-row"><span>Próxima</span><b>'+sfStr(pj[0].sets,I.u,true)+'</b></div>':'')+
+        (pj[3]?'<div class="fc-row"><span>En 4 sesiones</span><b>'+sfStr(pj[3].sets,I.u,false)+'</b></div>':'')+
+      '</div>'+(pj[0]?'<div class="fc-why">'+pj[0].why+'</div>':'')+sfSvg(c.ex.id)+
     '</div>';
   });
-  h+='<div class="fc-note" style="padding:0 4px 20px">Línea dorada: lo que has hecho (mejor sesión de cada semana, media de las series). Discontinua gris: lo que se preveía. Discontinua amarilla: previsión. Toca un ejercicio para ver el detalle.'+(few?' '+few+' ejercicio'+(few===1?'':'s')+' con solo 1 semana de datos todavía.':'')+'</div>';
+  h+='<div class="fc-note" style="padding:0 4px 20px">Línea verde: tu serie más pesada en cada sesión. Discontinua: la previsión de las próximas 4 sesiones. Toca un ejercicio para ver el detalle.</div>';
   el.innerHTML=h;
 }
 
@@ -2606,7 +2670,7 @@ function bCard(ex,gk,td,refDay,focused){
   var objStr=sfc?sfc.sets.filter(function(x){return x;}).map(function(x){return (x.up?'<b class="obj">':'<b>')+fmtN(x.v)+'</b>';}).join(' · '):'';
   if(isDone&&hasToday)meta=serData.filter(function(v){return v!==null&&v!=='';}).map(fmtN).join(' · ')+' '+u;
   else{
-    if(focused)meta=ex.s+(stepInfo.conf>=0.6?' · saltos de '+fmtN(stepInfo.step)+' '+u:'')+(sfc&&sfc.sets.some(function(x){return x&&x.up;})?' · <b class="obj">toca subir</b>':'');
+    if(focused)meta=ex.s+(stepInfo.conf>=0.6?' · saltos de '+fmtN(stepInfo.step)+' '+u:'')+(sfc?' · '+(sfc.sets.some(function(x){return x&&x.up;})?'<b class="obj">'+sfc.short+'</b>':sfc.short):'');
     else meta=objStr?'Hoy: '+objStr+' '+u:ex.s;
   }
 
@@ -2675,7 +2739,7 @@ function bCard(ex,gk,td,refDay,focused){
   '</div>';
   var extra='<div class="exc-extra">'+
     rpeHtml+
-    (isAbs||!sfc?'':(function(){var f=calcForecast(ex.id);return '<div class="fc-pill" onclick="openProgModal(\''+ex.id+'\')"><span style="flex:1">&#128302; Previsión: '+sfc.sets.filter(function(x){return x;}).map(function(x){return x.up?'<b>'+fmtN(x.v)+'</b>':fmtN(x.v);}).join(' · ')+' '+u+(sfc.pattern==='ladder'?'<br><span style="font-size:11px;color:var(--mu)">Subes una serie por sesión</span>':'')+'</span>'+(f&&!f.few?'<span class="fc-st '+f.status.k+'">'+f.status.t+'</span>':'')+'</div>';})())+
+    (isAbs||!sfc?'':(function(){var f=sfStatus(ex.id);return '<div class="fc-pill" onclick="openProgModal(\''+ex.id+'\')"><span style="flex:1">&#128302; Previsión: '+sfStr(sfc.sets,u,true)+'<br><span style="font-size:11px;color:var(--mu3)">'+sfc.why+'</span></span>'+(f?'<span class="fc-st '+f.k+'">'+f.t+'</span>':'')+'</div>';})())+
     (isFat?'<div class="fc-pill" style="border-color:rgba(204,41,54,0.3);background:rgba(204,41,54,0.08);color:var(--red2)">&#9888; Por debajo de la última sesión — posible fatiga</div>':'')+
     tfHtml+timerHtml+
     '<div class="exc-cfg">Descanso <input type="number" inputmode="numeric" min="5" max="600" value="'+rs+'" onchange="sRest(\''+ex.id+'\',this.value)" onfocus="this.select()"> s'+(pr?'<span style="margin-left:auto">PR <b style="color:var(--gold)">'+pr+' '+u+'</b></span>':'')+'</div>'+
