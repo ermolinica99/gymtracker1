@@ -79,10 +79,10 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 
 /* MINI DASHBOARD BAR */
 .mini-dash{background:var(--s1);border-bottom:1px solid var(--s3);flex-shrink:0;padding:10px 14px}
-.mini-dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.md-cell{background:var(--s2);border-radius:10px;padding:8px 10px;text-align:center;border:1px solid var(--s3)}
-.md-val{font-size:15px;font-weight:800}
-.md-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px}
+
+
+
+
 
 /* SCROLL */
 .scrl{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 16px}
@@ -91,45 +91,43 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 /* EXERCISE CARD */
 
 .excard{touch-action:pan-y;}
-.excard.dragging{opacity:0.5;border:2px dashed var(--gold)!important}
-.excard.drag-over{border-top:3px solid var(--gold)!important}
-.drag-handle{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--mu);font-size:16px;flex-shrink:0;touch-action:none}
-.drag-handle:active{cursor:grabbing}
+
+
+
+
 .excard{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r2);padding:14px;margin-bottom:10px;animation:fadeIn 0.3s ease both}
 .excard.done{border-color:rgba(34,197,94,0.4)}
 .excard.is-pr{border-color:rgba(200,245,66,0.5)}
 .excard.fatigue{border-color:rgba(204,41,54,0.35)}
-.ex-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px}
-.ex-info{flex:1;min-width:0}
-.ex-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
-.ex-name{font-size:15px;font-weight:700;line-height:1.2}
+
+
+
+
 .pr-pill{font-size:9px;background:var(--acc);color:#000;border-radius:20px;padding:2px 7px;font-weight:800;letter-spacing:0.3px;flex-shrink:0}
 .fatigue-pill{font-size:9px;background:rgba(204,41,54,0.15);color:var(--red2);border:1px solid rgba(204,41,54,0.3);border-radius:20px;padding:2px 7px;font-weight:700;flex-shrink:0}
-.ex-series-lbl{font-size:12px;color:var(--mu)}
-.ex-btns{display:flex;gap:5px;flex-shrink:0}
+
+
 .ib{width:30px;height:30px;border-radius:9px;border:1px solid var(--s4);background:var(--s2);color:var(--mu);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
 .ib:active{transform:scale(0.9)}
 .ib.check.done{background:linear-gradient(135deg,#16a34a,#22c55e);border-color:transparent;color:#fff}
 .ib.del{border-color:rgba(204,41,54,0.3);color:var(--red)}
 
-/* STATS PILLS */
-.ex-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.esp{background:var(--s2);border:1px solid var(--s3);border-radius:9px;padding:7px 10px}
-.esp-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px}
-.esp-val{font-size:14px;font-weight:700}
-.esp-val.gold{color:var(--gold)}
-.esp-val.red{color:var(--red2)}
-.esp-val.green{color:var(--gr)}
 
-/* SERIES */
-.series-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.serie-row{display:flex;align-items:center;gap:6px;background:var(--s2);border-radius:10px;padding:8px 10px;border:1px solid var(--s3);transition:border-color 0.2s}
-.serie-row:focus-within{border-color:rgba(200,245,66,0.3)}
-.serie-num{font-size:11px;color:var(--mu);font-weight:700;width:16px;flex-shrink:0;text-align:center}
-.serie-input{flex:1;background:transparent;border:none;color:var(--tx);font-size:19px;font-weight:700;text-align:center;padding:0;font-family:var(--font)}
-.serie-input:focus{outline:none}
-.serie-input::placeholder{color:var(--mu2)}
-.serie-unit{font-size:11px;color:var(--mu);flex-shrink:0}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* EXERCISE TIMER */
 .ex-timer-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;background:var(--s2);border-radius:10px;padding:8px 12px;border:1px solid var(--s3)}
@@ -140,14 +138,13 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .ex-timer-display.stopped{color:var(--gr)}
 .ex-timer-reset{width:28px;height:28px;border-radius:7px;border:1px solid var(--s4);background:transparent;color:var(--mu);font-size:12px;cursor:pointer}
 
-/* REST TIMER */
-.rest-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.rest-btn{height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--s4);background:var(--s2);color:var(--or);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all 0.2s;display:flex;align-items:center;gap:5px}
-.rest-btn:active{opacity:0.7}
-.rest-val{font-size:13px;font-weight:700;min-width:30px}
-.rest-sec-inp{width:42px;height:28px;background:var(--s2);border:1px solid var(--s4);border-radius:7px;color:var(--or);font-size:11px;font-weight:700;text-align:center;padding:0;font-family:var(--font)}
-.rest-sec-inp:focus{outline:none;border-color:var(--or)}
-.rest-sec-lbl{font-size:10px;color:var(--mu)}
+
+
+
+
+
+
+
 
 /* RPE */
 .rpe-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -164,36 +161,33 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .test-fuerza{background:rgba(200,245,66,0.06);border:1px solid rgba(200,245,66,0.2);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
 .tf-label{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px}
 .tf-desc{font-size:13px;color:var(--tx);font-weight:500}
-.tf-hidden{display:none}
+
 
 /* NOTE */
 .note-inp{width:100%;background:var(--s2);border:1px solid var(--s3);border-radius:10px;color:var(--tx);font-size:13px;padding:8px 12px;resize:none;height:48px;font-family:var(--font);transition:border-color 0.2s;margin-bottom:10px}
 .note-inp:focus{outline:none;border-color:rgba(200,245,66,0.3)}
 
-/* SAVE BTN */
-.save-ex-btn{width:100%;height:40px;background:var(--s2);border:1px solid var(--s4);border-radius:10px;color:var(--mu);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font)}
-.save-ex-btn.saved{border-color:rgba(34,197,94,0.5);color:var(--gr);background:rgba(34,197,94,0.06)}
+
+
 .sec-add{display:flex;justify-content:flex-end;padding:4px 0;margin-top:4px}
 .sec-add button{font-size:13px;color:var(--gold);background:rgba(200,245,66,0.08);border:1px solid rgba(200,245,66,0.2);border-radius:8px;cursor:pointer;padding:7px 16px;font-weight:600;font-family:var(--font)}
 
-/* MINI CHART */
 
-.pending-section{margin-bottom:14px}
 .pending-group-title{font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:0.6px;padding:10px 0 8px;display:flex;align-items:center;gap:8px}
 .pending-group-title .pg-ic{font-size:16px}
-.pending-done{color:var(--gr)}
+
 .pending-all-done{text-align:center;padding:30px 20px;color:var(--gr);font-size:15px;font-weight:600}
 
-.ai-card{background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(200,245,66,0.06));border:1px solid rgba(139,92,246,0.3);border-radius:var(--r2);padding:16px;margin-bottom:10px}
-.ai-btn{width:100%;height:48px;background:linear-gradient(135deg,var(--pu),#6d28d9);border:none;border-radius:var(--r);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.ai-btn:active{opacity:0.8}
-.ai-btn:disabled{opacity:0.5;cursor:not-allowed}
-.ai-response{margin-top:14px;font-size:13px;line-height:1.7;color:var(--tx);white-space:pre-wrap}
-.ai-loading{display:flex;align-items:center;gap:10px;margin-top:14px;color:var(--mu);font-size:13px}
-.ai-spinner{width:18px;height:18px;border:2px solid var(--s4);border-top-color:var(--pu);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
-.ai-section{margin-bottom:12px}
-.ai-section-title{font-size:11px;font-weight:700;color:var(--pu);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
-.ai-section-body{font-size:13px;line-height:1.6;color:var(--tx)}
+
+
+
+
+
+
+
+
+
+
 
 
 .alim-card{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r2);padding:14px;margin-bottom:10px;animation:fadeIn 0.3s ease both}
@@ -221,9 +215,9 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 
 .alim-edit-btn{font-size:11px;color:var(--mu);background:transparent;border:1px solid var(--s4);border-radius:7px;padding:3px 8px;cursor:pointer;font-family:var(--font);transition:all 0.2s}
 .alim-edit-btn:hover{border-color:var(--gold);color:var(--gold)}
-.alim-edit-mode input{background:var(--s2);border:1px solid var(--gold);border-radius:6px;color:var(--tx);font-size:12px;padding:3px 7px;font-family:var(--font);flex:1}
-.alim-edit-mode input:focus{outline:none}
-.alim-more-btn{width:100%;height:34px;background:transparent;border:1px solid var(--s4);border-radius:9px;color:var(--mu);font-size:12px;cursor:pointer;font-family:var(--font);margin-top:8px}
+
+
+
 .foto-upload-card{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r2);padding:16px;margin-bottom:12px}
 .foto-upload-title{font-size:15px;font-weight:700;margin-bottom:4px}
 .foto-upload-sub{font-size:12px;color:var(--mu);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.4px}
@@ -236,7 +230,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .foto-item img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
 .foto-item-info{padding:8px 10px}
 .foto-item-date{font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
-.foto-item-weight{font-size:13px;font-weight:700;color:var(--gold);margin-top:2px}
+
 .foto-item-del{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .foto-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .foto-compare-item{text-align:center}
@@ -245,16 +239,16 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 
 .foto-note-inp{width:100%;background:var(--s2);border:1px solid var(--s3);border-radius:8px;color:var(--tx);font-size:13px;padding:7px 10px;resize:none;height:44px;font-family:var(--font);margin-top:6px}
 .foto-note-inp:focus{outline:none;border-color:rgba(200,245,66,0.3)}
-.foto-compare-sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+
 .foto-sel-item{background:var(--s2);border:2px solid var(--s3);border-radius:var(--r);padding:8px;cursor:pointer;transition:all 0.2s;text-align:center}
 .foto-sel-item.selected{border-color:var(--gold)}
 .foto-sel-item img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;margin-bottom:6px}
-.foto-sel-lbl{font-size:11px;color:var(--mu);font-weight:600}
+
 .foto-empty{text-align:center;padding:40px 20px;color:var(--mu);font-size:14px}
 .foto-empty-ic{font-size:48px;margin-bottom:12px}
-.suggestion-pill{background:rgba(200,245,66,0.08);border:1px solid rgba(200,245,66,0.2);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--gold);font-weight:600;margin-bottom:6px;display:inline-block}
-.ex-mini-chart{height:46px;margin-top:6px}
-.ex-mini-chart svg{width:100%;height:100%;overflow:visible}
+
+
+
 
 /* CARDIO */
 .cccard{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r2);padding:14px;margin-bottom:10px;animation:fadeIn 0.3s ease both}
@@ -311,8 +305,8 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .streak-info{display:flex;flex-direction:column;gap:3px}
 .streak-lbl{font-size:14px;font-weight:600}
 .streak-sub{font-size:12px;color:var(--mu)}
-.pr-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--s3)}
-.pr-row:last-child{border-bottom:none}
+
+
 .pr-nm{font-size:13px}.pr-vl{font-size:14px;font-weight:800;color:var(--gold)}
 .week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .wg-item{background:var(--s2);border:1px solid var(--s3);border-radius:12px;padding:10px 4px;text-align:center;transition:all 0.2s}
@@ -334,14 +328,14 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .cal-entry-ic{font-size:13px}
 .cal-entry-name{font-size:12px;font-weight:600;flex:1}
 .cal-entry-time{font-size:11px;color:var(--gold);font-weight:700}
-.cal-week-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--s3)}
-.cal-week-row:last-child{border-bottom:none}
-.cal-week-lbl{font-size:13px;color:var(--mu)}
-.cal-week-time{font-size:14px;font-weight:700}
-.cal-month-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--s3)}
-.cal-month-row:last-child{border-bottom:none}
-.cal-month-lbl{font-size:13px;color:var(--mu)}
-.cal-month-time{font-size:14px;font-weight:700;color:var(--gold)}
+
+
+
+
+
+
+
+
 /* HISTORIAL */
 .hist-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .hist-nav button{width:38px;height:38px;border-radius:10px;border:1px solid var(--s4);background:var(--s2);color:var(--tx);font-size:18px;cursor:pointer;font-family:var(--font)}
@@ -375,7 +369,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .hist-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--s3);font-size:13px}
 .hist-row:last-child{border-bottom:none}
 .hist-empty{text-align:center;padding:18px;color:var(--mu);font-size:13px}
-.home-week-day{cursor:pointer}
+
 
 
 
@@ -389,7 +383,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .exc-name{font-size:15px;font-weight:700;line-height:1.25;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .exc-meta{font-size:12px;color:var(--mu3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .exc-meta b{color:var(--tx);font-weight:700}
-.exc-meta .fc{color:var(--gold2)}
+
 .excard.done .exc-name{color:var(--mu3)}
 .excard.done .exc-meta{color:var(--gr)}
 .exc-chev{width:32px;height:32px;flex-shrink:0;border:none;background:transparent;color:var(--mu);font-size:18px;cursor:pointer;transition:transform 0.2s}
@@ -422,10 +416,9 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .exc-tool span{font-size:15px}
 .exc-tool.del{color:var(--red2);border-color:rgba(204,41,54,0.3)}
 .exc-extra .note-inp{margin-bottom:8px}
-/* Session strip */
-.md-strip{display:flex;flex-direction:column;gap:6px}
-.md-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--mu3);gap:8px}
-.md-row b{color:var(--tx);font-weight:800;font-size:13px}
+
+
+
 .md-prog{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
 .md-prog-bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width 0.4s}
 /* PREVISIONES */
@@ -438,10 +431,10 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .fc-st.beat{background:rgba(200,245,66,0.15);color:var(--gold2)}
 .fc-st.flat{background:var(--s3);color:var(--mu3)}
 .fc-st.down{background:rgba(204,41,54,0.12);color:var(--red2)}
-.fc-nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
-.fc-n{background:var(--s2);border-radius:9px;padding:7px 8px}
-.fc-n-v{font-size:15px;font-weight:800}
-.fc-n-l{font-size:9px;color:var(--mu3);text-transform:uppercase;letter-spacing:0.4px;margin-top:1px}
+
+
+
+
 .fc-svg{width:100%;height:70px;display:block;margin-top:8px}
 .fc-note{font-size:11px;color:var(--mu3);margin-top:6px}
 .fc-pill{display:flex;align-items:center;gap:8px;background:rgba(200,245,66,0.08);border:1px solid rgba(200,245,66,0.2);border-radius:9px;padding:7px 10px;font-size:12px;margin-bottom:10px;cursor:pointer}
@@ -466,61 +459,35 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .pi-sub{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-bottom:6px}
 .dots{display:flex;gap:3px;flex-wrap:wrap}
 .dot{width:20px;height:20px;border-radius:5px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px}
-.dot-f{background:rgba(34,197,94,0.18);color:var(--gr)}.dot-c{background:linear-gradient(135deg,var(--red),var(--gold));color:#fff}
-
-/* TABS */
-
-/* ── DRAWER ──────────────────────────────────── */
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ── HEADER NEW ──────────────────────────────── */
-
-.hdr-title{flex:1;text-align:center;font-size:17px;font-weight:800;letter-spacing:-0.3px}
-.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--s4);background:var(--s2);color:var(--mu);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.icon-btn.spin{color:var(--bl);animation:spin 1s linear infinite}
-.icon-btn.ok{color:var(--gr);border-color:rgba(34,197,94,0.3)}
 /* ── HOME SCREEN ──────────────────────────────── */
 
 .home-greeting h2{font-size:24px;font-weight:900;letter-spacing:-0.5px}
 .home-greeting p{font-size:13px;color:var(--mu);margin-top:3px}
 
 
-.home-card:active{transform:scale(0.98);background:var(--s2)}
 
 
 
-.home-card-sub{font-size:12px;color:var(--mu);margin-top:3px}
-
-/* ── GROUP TABS ───────────────────────────────── */
-.group-tabs{display:flex;overflow-x:auto;padding:10px 14px;gap:8px;flex-shrink:0;border-bottom:1px solid var(--s3);background:var(--bg)}
-.group-tabs::-webkit-scrollbar{display:none}
-.gtab{height:36px;padding:0 14px;border-radius:20px;border:1px solid var(--s4);background:var(--s2);color:var(--mu);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:var(--font);flex-shrink:0;display:flex;align-items:center;gap:5px}
-.gtab.on{background:var(--acc);color:#000;border-color:transparent;font-weight:800}
-
-.main-tabs{display:none}
 
 
 
-.sub-tabs{display:flex;background:var(--s1);border-top:1px solid var(--s3);padding-bottom:var(--sb);flex-shrink:0;overflow-x:auto}
-.sub-tabs::-webkit-scrollbar{display:none}
+
+
+
+
+
+
+
+
+
+
+
 
 .grp-tabs{display:flex;overflow-x:auto;padding:10px 14px;gap:8px;background:var(--s1);border-bottom:1px solid var(--s3);flex-shrink:0}
 .grp-tabs::-webkit-scrollbar{display:none}
@@ -528,7 +495,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .grp-tab.on{background:var(--acc);color:#000;border-color:transparent;font-weight:800}
 .sub-tab{flex:1;min-width:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;color:var(--mu);font-size:9px;cursor:pointer;padding:8px 0 4px;font-family:var(--font);text-transform:uppercase;letter-spacing:0.3px;font-weight:600;transition:color 0.2s}
 .sub-tab.on{color:var(--gold)}
-.sub-tab-ic{font-size:17px;line-height:1}
+
 .sec-h{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:0.8px;padding:10px 2px 6px;font-weight:700}
 
 /* MODALS */
@@ -596,25 +563,25 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 /* ── HOME SCREEN ─────────────────────────────────────────── */
 .home-greeting{font-size:22px!important;font-weight:800!important;font-family:var(--font2)!important;letter-spacing:-0.5px}
 #home-content{padding-bottom:24px}
-.home-streak{margin:16px 16px 0;background:linear-gradient(135deg,rgba(200,245,66,0.15),rgba(200,245,66,0.05));border:1px solid rgba(200,245,66,0.3);border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:16px;cursor:pointer}
-.home-streak-num{font-size:44px;font-weight:800;color:var(--gold);line-height:1;flex-shrink:0}
-.home-streak-lbl{font-size:15px;font-weight:700;color:var(--tx)}
-.home-streak-sub{font-size:12px;color:var(--mu3);margin-top:3px}
-.home-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu3);padding:18px 16px 8px}
-.home-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:0 16px}
-.home-week-day{background:var(--s2);border-radius:10px;padding:8px 3px;text-align:center;border:1px solid var(--s3)}
-.home-week-day.done{background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.4)}
-.home-week-day.today{border-color:var(--gold);background:rgba(200,245,66,0.08)}
-.home-week-lbl{font-size:9px;color:var(--mu3);text-transform:uppercase;letter-spacing:0.3px}
-.home-week-ic{font-size:13px;margin-top:2px}
-.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px}
-.home-card{background:var(--s2);border-radius:18px;border:1px solid var(--s3);padding:18px 16px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:transform 0.15s,background 0.15s;position:relative;overflow:hidden;min-height:110px}
-.home-card:active{transform:scale(0.97);background:var(--s3)}
-.home-card-accent{position:absolute;top:-16px;right:-12px;font-size:56px;opacity:0.06;pointer-events:none}
-.home-card-icon{font-size:24px}
-.home-card-title{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--mu3);text-transform:uppercase}
-.home-card-val{font-size:14px;font-weight:600;color:var(--tx);line-height:1.3}
-.home-card-sub{font-size:11px;color:var(--mu3)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ── PROGRESSION MODAL ───────────────────────────────────── */
 .prog-chart-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -630,7 +597,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .hdr{border-bottom:none;padding-left:18px;padding-right:18px}
 .hdr-info h1{font-size:28px;font-weight:800;letter-spacing:-.8px}
 .hdr-info p{text-transform:none;letter-spacing:0;font-size:13px;color:var(--mu)}
-.hdr-title{text-align:left;font-size:26px;font-weight:800;letter-spacing:-.6px}
+
 .scrl{padding:6px 16px 20px}
 .bnav{flex-shrink:0;display:flex;justify-content:space-around;background:rgba(0,0,0,.92);border-top:1px solid #161616;padding:8px 6px calc(var(--sb) + 4px);backdrop-filter:blur(20px)}
 .bnav button{flex:1;background:none;border:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-family:var(--font);font-size:10px;font-weight:600;padding:4px 0;cursor:pointer}
@@ -643,7 +610,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .grp-tab.on{background:var(--tx)!important;color:#000!important}
 .mini-dash{background:var(--bg);border:none;padding:0 16px 10px}
 .wnav{background:var(--bg);border:none;padding:0 16px 10px}
-.wbtn{border:none!important;background:var(--s1)!important;border-radius:12px!important}
+
 .sync-btn{border:none;background:var(--s1)}
 .sb-ic .ic{width:20px;height:20px}
 .sb-logo{color:var(--acc)}.sb-logo .ic{width:30px;height:30px}
@@ -750,7 +717,7 @@ html,body{height:100%;min-height:-webkit-fill-available;overflow:hidden;backgrou
 .sec-add button{border:1px dashed #2a2a2a!important;background:transparent!important;color:var(--mu3)!important;border-radius:16px!important}
 .pw-input{min-width:0;width:100%;border:none}.pw-input-row{min-width:0}.pw-save{flex-shrink:0}
 .pw-save,.ai-btn{background:var(--acc)!important;color:#000!important;font-weight:800}
-.ai-card{background:var(--s1)!important;border:none!important}
+
 .h-go2{background:var(--s2)!important;color:var(--tx)!important}.h-ring{cursor:pointer}
 .h-bar{position:relative}
 .h-avg{position:absolute;left:4px;right:4px;bottom:80%;height:2px;border-radius:1px;background:#f4f4f2;box-shadow:0 0 0 1px rgba(0,0,0,.55);opacity:.8;z-index:2}
@@ -1017,7 +984,7 @@ body *{text-transform:none!important}
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-9';
+var APP_VERSION='2026.09.27-10';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -1243,15 +1210,6 @@ function startGroup(g){
   goGroup(g,b);
 }
 
-function makeHomeCard(cls,icon,title,val,sub,screen){
-  return '<div class="home-card '+cls+'" onclick="navTo(\''+screen+'\')">'+
-    '<div class="home-card-accent">'+icon+'</div>'+
-    '<div class="home-card-icon">'+icon+'</div>'+
-    '<div class="home-card-title">'+title+'</div>'+
-    '<div class="home-card-val">'+val+'</div>'+
-    '<div class="home-card-sub">'+sub+'</div>'+
-  '</div>';
-}
 
 // ── PROGRESSION CHART ──────────────────────────────────────────────────────────
 function openProgModal(exId){
@@ -1417,7 +1375,6 @@ function exportPDF(){
 
 // ── HELPERS ────────────────────────────────────────────────────────────────────
 function wk(w,y){return y+'_'+w;}
-function ck(){return wk(cW,cY);}
 function wdates(w,y){var j=new Date(y,0,4),d=j.getDay()||7,m=new Date(j.getTime());m.setDate(j.getDate()-d+1+(w-1)*7);var s=new Date(m.getTime());s.setDate(m.getDate()+6);function f(x){return x.toLocaleDateString('es-ES',{day:'numeric',month:'short'});}return f(m)+' - '+f(s);}
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
 function fmtD(s){try{var d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
@@ -1681,7 +1638,6 @@ function doLogin(){var e=document.getElementById('login-email').value.trim(),p=d
 function doRegister(){var n=document.getElementById('reg-name').value.trim(),e=document.getElementById('reg-email').value.trim(),p=document.getElementById('reg-pass').value,err=document.getElementById('reg-err'),msg=document.getElementById('reg-msg');err.textContent='';msg.textContent='';if(!e||!p){err.textContent='Rellena todos los campos';return;}if(p.length<6){err.textContent='Minimo 6 caracteres';return;}err.textContent='Creando cuenta...';aUp(e,p,n).then(function(res){if(res.error){err.textContent=res.error.message||'Error';return;}err.textContent='';if(res.access_token){_s=res;svS(res);startApp();}else msg.textContent='Revisa tu email para confirmar la cuenta';}).catch(function(){err.textContent='Error de conexion';});}
 function doReset(){var e=document.getElementById('login-email').value.trim();if(!e){document.getElementById('login-err').textContent='Escribe tu email primero';return;}aRec(e).then(function(){document.getElementById('login-err').style.color='var(--gr)';document.getElementById('login-err').textContent='Email enviado';});}
 function doLogout(){if(pendingSync&&!confirm('Hay cambios sin guardar en la nube. Salir igualmente?'))return;aOut();_s=null;loaded=false;clS();setDirty(false);try{['gym_offline_data','gym_offline_done','gym_offline_groups','gym_offline_cardio','gym_offline_user','gym_offline_ts'].forEach(function(k){localStorage.removeItem(k);});}catch(e){}G={};CARDIO=[];ud={};dm={};dbId=null;closeModal('modal-user');document.getElementById('main').classList.remove('on');document.getElementById('auth-scr').style.display='flex';}
-function showUserMenu(){var n=(_s&&_s.user&&_s.user.user_metadata&&_s.user.user_metadata.name)?_s.user.user_metadata.name:'Mi cuenta',em=(_s&&_s.user)?_s.user.email:'';document.getElementById('mu-name').textContent=n;document.getElementById('mu-email').textContent=em;document.getElementById('modal-user').classList.add('on');}
 function svS(s){if(s&&!s.expires_at&&s.expires_in)s.expires_at=Math.floor(Date.now()/1000)+s.expires_in;try{localStorage.setItem('gym_s',JSON.stringify(s));}catch(e){}}
 function clS(){try{localStorage.removeItem('gym_s');}catch(e){}}
 function ldS(){try{var s=localStorage.getItem('gym_s');return s?JSON.parse(s):null;}catch(e){return null;}}
@@ -1788,150 +1744,8 @@ function exDoneToday(ex,td){
 
 
 // ── CLAUDE AI ANALYSIS ─────────────────────────────────────────────────────────
-function buildTrainingContext(){
-  var gks=Object.keys(G);
-  var ctx={semana:cW,ano:cY,grupos:{},cardio:{},pesoCorporal:[],prMaximos:{}};
 
-  // Last 4 weeks of data per exercise
-  gks.forEach(function(gk){
-    ctx.grupos[gk]={nombre:G[gk].name,ejercicios:{}};
-    G[gk].exs.forEach(function(ex){
-      var weeks=[];
-      for(var wi=0;wi<4;wi++){
-        var w=cW-wi,y=cY;if(w<1){w+=52;y--;}
-        var mean=getMeanForWeek(ex.id,w,y);
-        var pr=getPRForEx(ex.id);
-        if(mean!==null)weeks.push({semana:w,año:y,media:mean,pr:pr});
-      }
-      if(weeks.length)ctx.grupos[gk].ejercicios[ex.name]={historial:weeks,series:ex.s,rpe:ud.rpe?ud.rpe[ex.id+'_'+todayStr()]||null:null};
-    });
-  });
 
-  // Cardio last 2 weeks
-  var wdays=getWeekDaysArr(cW,cY);
-  CARDIO.forEach(function(ac){
-    var sessions=[];
-    for(var wi=0;wi<2;wi++){
-      var days=getWeekDaysArr(cW-wi,cY);
-      days.forEach(function(d){
-        var min=parseFloat(ud['cardio_'+ac.id+'_'+d+'_min']||0);
-        var km=parseFloat(ud['cardio_'+ac.id+'_'+d+'_km']||0);
-        if(min>0)sessions.push({fecha:d,minutos:min,km:km});
-      });
-    }
-    if(sessions.length)ctx.cardio[ac.name]=sessions;
-  });
-
-  // Body weight last 14 days
-  if(ud.bodyWeight){
-    var bwkeys=Object.keys(ud.bodyWeight).sort().slice(-14);
-    bwkeys.forEach(function(d){ctx.pesoCorporal.push({fecha:d,peso:ud.bodyWeight[d]});});
-  }
-
-  // Goals
-  ctx.objetivos={};
-  if(ud.goals){Object.keys(ud.goals).forEach(function(k){ctx.objetivos[k]=ud.goals[k];});}
-
-  return ctx;
-}
-
-function runClaudeAnalysis(){
-  var btn=document.getElementById('claude-analyze-btn');
-  var loadingEl=document.getElementById('ai-loading');
-  var responseEl=document.getElementById('ai-response');
-  if(btn)btn.disabled=true;
-  if(loadingEl)loadingEl.style.display='flex';
-  if(responseEl)responseEl.innerHTML='';
-
-  var ctx=buildTrainingContext();
-  var prompt=[
-    'Eres un entrenador personal experto. Analiza datos de entrenamiento semana '+ctx.semana+'/'+ctx.ano,
-    'Da un analisis en espanol con secciones:',
-    '1. RESUMEN SEMANAL: Grupos entrenados, frecuencia.',
-    '2. PROGRESION: Cada ejercicio mejorado/empeorado vs semanas anteriores.',
-    '3. PESOS PROXIMA SEMANA: Sugerencias concretas de kg.',
-    '4. FATIGA: Signos de sobreentrenamiento segun RPE y evolucion.',
-    '5. CARDIO Y PESO CORPORAL: Evolucion.',
-    '6. OBJETIVOS: Si va encaminado a sus metas.',
-    'Usa numeros reales de los datos: '+JSON.stringify(ctx)
-  ].join('\n');
-
-  fetch('/.netlify/functions/analyze',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      messages:[{role:'user',content:prompt}]
-    })
-  }).then(function(r){return r.json();}).then(function(data){
-    if(btn)btn.disabled=false;
-    if(loadingEl)loadingEl.style.display='none';
-    if(!responseEl)return;
-    var text=data.content&&data.content[0]?data.content[0].text:'Sin respuesta';
-    // Parse sections and render nicely
-    var sections=text.split(/\n(?=\d+\.)/);
-    var html='';
-    sections.forEach(function(s){
-      var lines=s.trim().split('\n');
-      if(!lines.length)return;
-      var title=lines[0].replace(/^\d+\.\s*/,'');
-      var body=lines.slice(1).join('\n').trim();
-      if(body){html+='<div class="ai-section"><div class="ai-section-title">'+title+'</div><div class="ai-section-body">'+body.replace(/\n/g,'<br>')+'</div></div>';}
-      else{html+='<div class="ai-section-body">'+s.replace(/\n/g,'<br>')+'</div>';}
-    });
-    responseEl.innerHTML=html||'<div class="ai-section-body">'+text.replace(/\n/g,'<br>')+'</div>';
-    // Save analysis
-    if(!ud.iaHistory)ud.iaHistory=[];
-    ud.iaHistory.push({date:todayStr(),week:cW,year:cY,text:text});
-    sched();
-  }).catch(function(err){
-    if(btn)btn.disabled=false;
-    if(loadingEl)loadingEl.style.display='none';
-    if(responseEl)responseEl.innerHTML='<span style="color:var(--red2)">Error al conectar con la IA. Comprueba tu conexion.</span>';
-  });
-}
-
-function renderIAAnalysis(container){
-  var gks=Object.keys(G);
-  var suggestions=[];
-
-  // Check fatigue by group
-  gks.forEach(function(gk){
-    var grp=G[gk];var fatigueCount=0;
-    grp.exs.forEach(function(ex){if(isFatigue(ex.id))fatigueCount++;});
-    if(fatigueCount>grp.exs.length/2)suggestions.push({icon:'&#9888;',color:'var(--red2)',text:grp.name+': posible sobreentrenamiento — '+fatigueCount+' ejercicios por debajo de semana anterior'});
-  });
-
-  // Check which groups haven't been trained this week
-  var wdays=getWeekDaysArr(cW,cY);
-  var grpIcons2={pecho:'&#127947;',piernas:'&#129459;',espalda:'&#128170;',brazos:'&#129148;',abdominales:'&#129354;'};
-  gks.forEach(function(gk){
-    if(gk==='abdominales')return;
-    var grp=G[gk];var trained=false;
-    grp.exs.forEach(function(ex){wdays.forEach(function(d){if(dm[ex.id+'_'+d])trained=true;});});
-    if(!trained)suggestions.push({icon:grpIcons2[gk]||'&#127947;',color:'var(--or)',text:grp.name+' no entrenado esta semana'});
-  });
-
-  // Streak warning
-  var streak=calcStreak();
-  if(streak===0)suggestions.push({icon:'&#128293;',color:'var(--or)',text:'Llevas más de una semana sin entrenar — ¡hora de volver!'});
-
-  // Progression opportunities
-  gks.forEach(function(gk){
-    G[gk].exs.forEach(function(ex){
-      var fst=gk==='abdominales'?null:sfStatus(ex.id),fpj=fst?sfProject(ex.id,1):[];
-      if(fst&&fst.k==='beat')suggestions.push({icon:'&#128640;',color:'var(--gr)',text:ex.name+': superando la previsión — próxima '+(fpj[0]?sfStr(fpj[0].sets,'kg',false):'')});
-      else if(fst&&fst.k==='down')suggestions.push({icon:'&#9888;',color:'var(--red2)',text:ex.name+': por debajo de lo previsto — revisa descanso y tecnica'});
-    });
-  });
-
-  if(!suggestions.length)suggestions.push({icon:'&#127942;',color:'var(--gold)',text:'Todo en orden — sigue asi!'});
-
-  var card=document.createElement('div');card.className='dash-card';
-  var html='<div class="dash-card-title">&#129504; Analisis IA</div>';
-  suggestions.forEach(function(s){html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--s3)"><span style="width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;background:'+s.color+'"></span><span style="font-size:13px;color:'+s.color+';line-height:1.4">'+s.text+'</span></div>';});
-  card.innerHTML=html;
-  container.appendChild(card);
-}
 
 function renderCompareCard(container){
   var gks=Object.keys(G);
@@ -2310,94 +2124,9 @@ function sfSvg(id){
 }
 
 // ── PREVISIONES ────────────────────────────────────────────────────────────────
-// Adaptive weekly forecast per exercise (damped Holt exponential smoothing):
-// each new week updates the level and the trend, so beating the forecast raises
-// the next ones and falling short lowers them. RPE of the last session tempers it.
-var FC_ALPHA=0.6,FC_BETA=0.35,FC_PHI=0.92;
 function fcMonday(d){var dt=new Date(d+'T12:00:00');return addDays(d,-((dt.getDay()+6)%7));}
-function fcWeeksBetween(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/(7*86400000));}
-function fcRound(v){return Math.round(v*2)/2;}
-function fcUnit(gk){return gk==='abdominales'?'reps':'kg';}
 // One value per week: the best session mean of that week
-function fcWeekly(id){
-  var wk={};
-  if(ud.series&&ud.series[id])Object.keys(ud.series[id]).forEach(function(d){var m=getMeanForDay(id,d);if(m!==null&&m>0){var w=fcMonday(d);if(!wk[w]||m>wk[w])wk[w]=m;}});
-  return Object.keys(wk).sort().map(function(w){return{w:w,v:wk[w]};});
-}
-function fcSum(h){var t=0,p=1;for(var i=0;i<h;i++){p*=FC_PHI;t+=p;}return t;}
-function fcClampTrend(t,level){var lim=Math.max(0.5,Math.min(5,level*0.05));return Math.max(-lim,Math.min(lim,t));}
 // Run the model over the weekly points; returns state after them plus the backtest
-function fcRun(pts){
-  var level=pts[0].v,trend=0,hist=[];
-  for(var i=1;i<pts.length;i++){
-    var gap=fcWeeksBetween(pts[i-1].w,pts[i].w);
-    // After a break the trend fades and some strength is lost
-    var tr=gap>2?trend*Math.pow(0.5,gap-2):trend;
-    var pred=level+tr*fcSum(Math.min(gap,2));
-    hist.push({w:pts[i].w,pred:fcRound(pred),act:pts[i].v});
-    var nl=FC_ALPHA*pts[i].v+(1-FC_ALPHA)*pred;
-    trend=fcClampTrend(FC_BETA*(nl-level)/Math.max(gap,1)+(1-FC_BETA)*FC_PHI*tr,nl);
-    level=nl;
-  }
-  return{level:level,trend:trend,hist:hist};
-}
-function calcForecast(id){
-  var pts=fcWeekly(id);if(pts.length<2)return pts.length?{few:true,n:pts.length}:null;
-  var thisW=fcMonday(todayStr());
-  var before=pts.filter(function(p){return p.w<thisW;});
-  var done=pts.length&&pts[pts.length-1].w===thisW?pts[pts.length-1].v:null;
-  var all=fcRun(pts);
-  // Last session RPE tempers the trend
-  var lastD=Object.keys(ud.series[id]).sort().reverse().find(function(d){return getMeanForDay(id,d)!==null;});
-  var rpe=lastD?getRPE(id,lastD):0,rt=all.trend;
-  if(rpe>=9)rt=rt>0?rt*0.4:rt;else if(rpe&&rpe<=6)rt=rt>0?rt*1.3:rt*0.5;
-  rt=fcClampTrend(rt,all.level);
-  var lastW=pts[pts.length-1].w,gapNow=Math.max(fcWeeksBetween(lastW,thisW),0);
-  if(gapNow>2)rt=rt*Math.pow(0.5,gapNow-2);
-  // This week: forecast made with data up to last week, so it stays fixed during the week
-  var cur=null;
-  if(before.length>=2){var b=fcRun(before),g=fcWeeksBetween(before[before.length-1].w,thisW),bt=g>2?b.trend*Math.pow(0.5,g-2):b.trend;cur=fcRound(b.level+bt*fcSum(Math.min(g,2)));}
-  else if(before.length===1)cur=fcRound(before[0].v);
-  var base=done!==null?0:gapNow; // weeks ahead from the last data point
-  var next=[];for(var h=1;h<=4;h++)next.push({w:addDays(thisW,7*h),v:fcRound(all.level+rt*fcSum(base+h))});
-  // Status from the last 3 forecast errors and the trend
-  var last3=all.hist.slice(-3),beat=0,miss=0;
-  last3.forEach(function(x){if(x.act>=x.pred+0.5)beat++;else if(x.act<=x.pred-1)miss++;});
-  var st;
-  if(gapNow>2)st={k:'flat',t:'Sin entrenar '+gapNow+' sem'};
-  else if(last3.length>=2&&beat>=2)st={k:'beat',t:'Superando previsión'};
-  else if(last3.length>=2&&miss>=2)st={k:'down',t:'Por debajo'};
-  else if(rt>Math.max(0.25,all.level*0.006))st={k:'up',t:'Mejorando'};
-  else if(rt<-Math.max(0.25,all.level*0.006))st={k:'down',t:'Empeorando'};
-  else st={k:'flat',t:'Estancado'};
-  var ok=all.hist.filter(function(x){return x.act>=x.pred-0.5;}).length;
-  return{pts:pts,hist:all.hist,cur:cur,done:done,next:next[0].v,next4:next,trend:rt,rpe:rpe,status:st,hit:all.hist.length?Math.round(ok/all.hist.length*100):null,thisW:thisW};
-}
-function fcSvg(fc){
-  var pts=fc.pts.slice(-10),fut=fc.next4,W=300,H=70,P=6;
-  var vals=pts.map(function(p){return p.v;}).concat(fut.map(function(p){return p.v;}));
-  fc.hist.slice(-10).forEach(function(x){vals.push(x.pred);});
-  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1;
-  var x0=pts[0].w,span=Math.max(fcWeeksBetween(x0,fut[fut.length-1].w),1);
-  function X(w){return P+(W-2*P)*fcWeeksBetween(x0,w)/span;}function Y(v){return H-P-(H-2*P)*(v-mn)/rg;}
-  var act=pts.map(function(p){return X(p.w)+','+Y(p.v);}).join(' ');
-  var pr=fc.hist.filter(function(x){return x.w>=x0;}).map(function(x){return X(x.w)+','+Y(x.pred);});
-  var lp=pts[pts.length-1],fu=[X(lp.w)+','+Y(lp.v)].concat(fut.map(function(p){return X(p.w)+','+Y(p.v);}));
-  var h='<svg class="fc-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
-  if(pr.length>1)h+='<polyline points="'+pr.join(' ')+'" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>';
-  h+='<polyline points="'+fu.join(' ')+'" fill="none" stroke="#f4f4f2" stroke-opacity="0.7" stroke-width="2" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/>';
-  h+='<polyline points="'+act+'" fill="none" stroke="#c8f542" stroke-width="2.5" vector-effect="non-scaling-stroke"/>';
-  h+='</svg>';
-  return h;
-}
-function fcWeekLbl(w){var d=new Date(w+'T12:00:00');return d.getDate()+'/'+(d.getMonth()+1);}
-function fcPillHtml(id,gk){
-  var fc=calcForecast(id),u=fcUnit(gk);if(!fc||fc.few)return '';
-  var t='&#128302; Previsión esta semana: <b>'+(fc.cur!==null?fc.cur+' '+u:'—')+'</b>';
-  if(fc.done!==null&&fc.cur!==null)t+=fc.done>=fc.cur-0.5?' · hecho '+fc.done+' &#9989;':' · hecho '+fc.done;
-  t+=' · próxima <b>'+fc.next+' '+u+'</b>';
-  return '<div class="fc-pill" onclick="openProgModal(\''+id+'\')"><span style="flex:1">'+t+'</span><span class="fc-st '+fc.status.k+'">'+fc.status.t+'</span></div>';
-}
 function fcDetailHtml(id){
   var I=exInfo(id),pj=sfProject(id,4);
   if(!pj.length)return '<div class="fc-note" style="margin-top:14px">&#128302; Cuando registres este ejercicio empezaré a hacer previsiones.</div>';
@@ -2752,7 +2481,7 @@ function bCard(ex,gk,td,refDay,focused){
     else{var lastSet=last&&nextIdx>=0?parseFloat(last.sets[nextIdx]):NaN;adjV=!isNaN(lastSet)?lastSet:(last?parseFloat(last.sets.filter(function(v){return !isNaN(parseFloat(v));}).slice(-1)[0])||0:0);}
   }
   var step=stepInfo.conf>=0.6||isAbs?stepInfo.step:2.5;
-  var actions=(nextIdx>=0?
+  var actions=(nextIdx>=0&&(sfc||ref||last||adjV>0)?
     '<div class="adj"><button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+(-step)+')">&minus; '+fmtN(step)+'</button>'+
       '<button class="adj-v" onclick="ejLogNext(\''+ex.id+'\',\''+td+'\')"><b><span id="adjv_'+ex.id+'">'+fmtN(adjV)+'</span> '+u+'</b><span>Guardar serie '+(nextIdx+1)+'</span></button>'+
       '<button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+step+')">+ '+fmtN(step)+'</button></div>':'')+
@@ -2856,18 +2585,6 @@ function setRPE(id,date,v,btn){
 }
 function tDone(id,date){var k=id+'_'+date,ex=fEx(id);if(!dm[k]&&ex&&exDoneToday(ex,date)){focusEx(id);return;}if(!dm[k])ejFocusSel=null;dm[k]=!dm[k];if(dm[k]){ejOpen[id]=false;if(exTimers[id]){if(exTimers[id].running){clearInterval(exTimers[id].interval);exTimers[id].running=false;}if(exTimers[id].elapsed>0)saveExTime(id,date,exTimers[id].elapsed);}vibrate1();}sched();renderEj();}
 function vibrate1(){try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}}
-function saveExBtn(id,date,btn){
-  var card=btn.closest('.excard');card.querySelectorAll('.serie-input').forEach(function(inp,i){saveSeries(id,date,i,inp.value);});
-  // Stop and save exercise timer
-  if(exTimers[id]){
-    if(exTimers[id].running){clearInterval(exTimers[id].interval);exTimers[id].running=false;}
-    if(exTimers[id].elapsed>0){saveExTime(id,date,exTimers[id].elapsed);}
-    var tbtn=document.getElementById('extbtn_'+id);var tdisp=document.getElementById('extdisp_'+id);
-    if(tbtn){tbtn.className='ex-timer-btn stopped';tbtn.textContent='▶ Continuar';}
-    if(tdisp){tdisp.className='ex-timer-display stopped';}
-  }
-  btn.textContent='✓ Guardado';btn.classList.add('saved');setTimeout(function(){btn.textContent='✓ Guardar';btn.classList.remove('saved');},2000);
-}
 
 // ── EXERCISE TIMER ─────────────────────────────────────────────────────────────
 function toggleExTimer(exId,date){
@@ -2938,23 +2655,6 @@ function renderPendiente(){
 }
 
 // ── PROGRESION AUTOMATICA ─────────────────────────────────────────────────────
-function checkProgresion(id){
-  // Check if all series were filled this week
-  var wdays=getWeekDaysArr(cW,cY);
-  var ex=fEx(id);if(!ex)return null;
-  var sets=parseSeries(ex.s).sets;
-  var done=false;
-  wdays.forEach(function(d){
-    var s=getSeriesForDay(id,d);
-    if(s&&s.filter(function(v){return v!==null&&v!=='';}).length>=sets)done=true;
-  });
-  if(!done)return null;
-  // Suggest +2.5kg based on current mean
-  var lastM=null;
-  wdays.forEach(function(d){var m=getMeanForDay(id,d);if(m!==null)lastM=m;});
-  if(lastM===null)return null;
-  return Math.round((lastM+2.5)*10)/10;
-}
 
 
 
@@ -2999,13 +2699,6 @@ function delAlimOption(franja,optIdx){
   });
 }
 
-function editAlimFoodName(franja,optIdx,foodIdx,val){
-  ALIM[franja].opciones[optIdx].alimentos[foodIdx].nombre=val;
-}
-function editAlimFoodQty(franja,optIdx,foodIdx,val){
-  ALIM[franja].opciones[optIdx].alimentos[foodIdx].cantidad=parseFloat(val)||0;
-  renderAlim();
-}
 
 function getUsedOptsThisWeek(franja){
   var wdays=getWeekDaysArr(cW,cY);
