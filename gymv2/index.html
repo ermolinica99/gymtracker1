@@ -1059,7 +1059,7 @@ body *{text-transform:none!important}
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-16';
+var APP_VERSION='2026.09.27-17';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -1499,7 +1499,7 @@ function buildReport(){
   sig.push({k:avgDays>=goalDays*0.85?'good':avgDays>=goalDays*0.6?'mid':'bad',t:'Constancia: '+avgDays.toFixed(1)+' días/semana de media (objetivo '+goalDays+')'});
   if(bwDir)sig.push({k:bwDir==='toward'||bwDir==='on'?'good':bwDir==='flat'?'mid':'bad',t:'Peso: '+(bwDir==='on'?'en el objetivo':bwDir==='toward'?'avanzando hacia '+bwGoal+' kg ('+rpSign(wkRate,' kg/sem')+')':bwDir==='flat'?'estable, sin acercarse a '+bwGoal+' kg':'alejándose de '+bwGoal+' kg ('+rpSign(wkRate,' kg/sem')+')')});
   else if(wkRate!==null)sig.push({k:'mid',t:'Peso: '+rpSign(wkRate,' kg/semana')+' (sin objetivo de peso definido)'});
-  if(volChg!==null&&volP)sig.push({k:volChg>=-10?'good':volChg>=-25?'mid':'bad',t:'Volumen: '+rpSign(volChg,'%')+' en las últimas '+half+' semanas frente a las '+half+' anteriores'});
+  if(volChg!==null&&volP)sig.push({k:volChg>=-10?'good':volChg>=-25?'mid':'bad',t:'Volumen: '+rpSign(volChg,'%')+(half===1?' la última semana frente a la anterior':' en las últimas '+half+' semanas frente a las '+half+' anteriores')});
   var sc=sig.reduce(function(a,x){return a+(x.k==='good'?1:x.k==='bad'?-1:0);},0),bad=sig.filter(function(x){return x.k==='bad';}).length;
   var verdict=bad===0&&sc>=Math.ceil(sig.length/2)?{k:'good',t:'Vas por buen camino',d:'La mayoría de indicadores progresan. Mantener el plan y seguir la progresión.'}:
               bad>=2||sc<0?{k:'bad',t:'Hay que ajustar',d:'Varios indicadores no avanzan. Conviene revisar el plan con el entrenador.'}:
@@ -1543,7 +1543,7 @@ function buildReport(){
   H+='<section class="rp-verdict rp-'+verdict.k+'"><div class="rp-vt">'+ICON[verdict.k]+' '+verdict.t+'</div><div class="rp-vd">'+verdict.d+'</div><ul>'+sig.map(function(x){return '<li><span class="rp-tag rp-'+x.k+'">'+ICON[x.k]+' '+LBL[x.k]+'</span>'+x.t+'</li>';}).join('')+'</ul></section>';
   if(head.length)H+='<section><h2>Hacia dónde vas</h2><ul class="rp-list">'+head.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul><p class="rp-note">Proyección calculada con tu ritmo actual; no es una garantía.</p></section>';
   H+='<section class="rp-kpis">'+
-    '<div><b>'+avgDays.toFixed(1)+'</b><span>días/semana (últ. '+half+' sem)</span></div>'+
+    '<div><b>'+avgDays.toFixed(1)+'</b><span>días/semana (últ. '+(half===1?'semana':half+' sem')+')</span></div>'+
     '<div><b>'+calcStreak()+'</b><span>semanas seguidas</span></div>'+
     '<div><b>'+(volL>=1000?Math.round(volL/100)/10+' t':Math.round(volL)+' kg')+'</b><span>volumen/semana'+(volChg!==null&&volP?' ('+rpSign(volChg,'%')+')':'')+'</span></div>'+
     '<div><b>'+(bwNow!==null?bwNow+' kg':'—')+'</b><span>peso'+(wkRate!==null?' ('+rpSign(wkRate,' kg/sem')+')':'')+'</span></div>'+
