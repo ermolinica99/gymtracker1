@@ -816,6 +816,15 @@ body *{text-transform:none!important}
   .rp-page{margin:0;max-width:none;padding:0;border-radius:0}
   .rp-verdict,.rp-tag{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+.obj-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.obj-big{font-size:34px;font-weight:800;letter-spacing:-1px;line-height:1.1}
+.obj-sub2{font-size:12px;color:var(--mu3);margin-top:4px}
+.obj-cmp{background:var(--s2);border-radius:12px;padding:2px 12px}
+.obj-cmp>div,.obj-next{display:flex;justify-content:space-between;gap:10px;padding:8px 0;font-size:13px}.obj-cmp>div+div{border-top:1px solid #222}
+.obj-cmp span,.obj-next span{color:var(--mu)}.obj-cmp b,.obj-next b{font-weight:700;text-align:right}
+.obj-cmp i{font-style:normal}.obj-cmp i.up{color:var(--acc)}.obj-cmp i.dn{color:var(--red2)}
+.obj-next{margin-top:8px;padding-bottom:0}.obj-next .obj{color:var(--acc)}
+.obj-card{cursor:pointer}
 </style>
 </head>
 <body>
@@ -906,7 +915,7 @@ body *{text-transform:none!important}
   <!-- OBJETIVOS -->
   <div class="scr" id="scr-obj">
     <div class="hdr">
-      <button class="hdr-back" onclick="goMain(ejMainScreen)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hdr-info"><h1>Objetivos</h1><p>Progreso hacia tus metas</p></div></div>
+      <button class="hdr-back" onclick="goMain(ejMainScreen)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hdr-info"><h1>Objetivos</h1><p>Peso objetivo y previsiones cumplidas</p></div></div>
     <div class="scrl" id="obj-content"></div>
   </div>
 
@@ -1027,7 +1036,7 @@ body *{text-transform:none!important}
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-12';
+var APP_VERSION='2026.09.27-13';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -1193,7 +1202,7 @@ function renderHome(){
   // Secondary rows
   var kcal=histKcal(today),photos=(ud.fotos&&ud.fotos.length)||0,goals=ud.goals?Object.keys(ud.goals).filter(function(k){return k!=='bw';}).length:0;
   function row(ic,t,v,scr){return '<div class="h-row" onclick="goMain(\''+scr+'\')">'+icon(ic)+'<div class="h-row-t">'+t+'</div><div class="h-row-v">'+v+'</div>'+icon('chev','ic ch')+'</div>';}
-  var rows='<div class="h-rows">'+row('food','Alimentación',kcal?kcal+' kcal hoy':'Sin confirmar','alim')+row('target','Objetivos',goals?goals+' activos':'Sin metas','obj')+row('camera','Fotos',photos?photos+' fotos':'Sin fotos','fotos')+row('grid','Dashboard','','dash')+'</div>';
+  var rows='<div class="h-rows">'+row('food','Alimentación',kcal?kcal+' kcal hoy':'Sin confirmar','alim')+row('target','Objetivos',objHomeTxt(),'obj')+row('camera','Fotos',photos?photos+' fotos':'Sin fotos','fotos')+row('grid','Resumen','','dash')+'</div>';
 
   el.innerHTML=
     '<div class="h-top"><div><div class="h-date">'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})(now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))+'</div><div class="h-hi">'+gr+(name?', '+name:'')+'</div></div><button class="h-sync sync-btn" onclick="syncNow()">&#8635;</button></div>'+
@@ -3196,18 +3205,40 @@ function renderObj(){
   var bwCard=document.createElement('div');bwCard.className='obj-card';bwCard.style.borderColor='rgba(200,245,66,0.3)';
   bwCard.innerHTML='<div class="obj-name">Peso corporal</div><div class="obj-stats"><div class="obj-stat"><div class="obj-stat-val">'+(bwCur||'—')+' kg</div><div class="obj-stat-lbl">Actual</div></div><div class="obj-stat"><div class="obj-stat-val" style="color:var(--pu)">'+(bwGoal||'—')+' kg</div><div class="obj-stat-lbl">Objetivo</div></div><div class="obj-stat"><div class="obj-stat-val" style="color:'+(bwDiff!==null&&bwDiff<=0?'var(--gr)':'var(--red2)')+'"> '+(bwDiff!==null?Math.abs(bwDiff)+' kg':'—')+'</div><div class="obj-stat-lbl">Diferencia</div></div></div>'+(bwGoal?'<div class="obj-bar-wrap"><div class="obj-bar" style="width:'+bwPct+'%"></div></div><div class="obj-pct">'+bwPct+'%</div>':'')+'<div class="obj-inp-row"><span class="obj-inp-lbl">Objetivo:</span><input class="obj-inp" type="number" inputmode="decimal" step="0.1" placeholder="kg" value="'+(bwGoal||'')+'"><button class="obj-save-btn" onclick="saveBWGoal(this.previousElementSibling.value)">Guardar</button></div>';
   c.appendChild(bwCard);
-  Object.keys(G).forEach(function(gk){
-    var grp=G[gk];var h2=document.createElement('div');h2.className='sec-h';h2.textContent=grp.name;c.appendChild(h2);
-    grp.exs.forEach(function(ex){
-      var last=getLastSessionForEx(ex.id),pr=getPRForEx(ex.id),goal=ud.goals[ex.id]||null;
-      var pct=goal&&last?Math.min(100,Math.round((last.val/goal)*100)):0;
-      var card=document.createElement('div');card.className='obj-card';
-      card.innerHTML='<div class="obj-name">'+ex.name+'</div><div class="obj-stats"><div class="obj-stat"><div class="obj-stat-val">'+(last?last.val+' kg':'—')+'</div><div class="obj-stat-lbl">Última sesión</div></div><div class="obj-stat"><div class="obj-stat-val" style="color:var(--gold)">'+(pr||'—')+' kg</div><div class="obj-stat-lbl">PR</div></div><div class="obj-stat"><div class="obj-stat-val" style="color:var(--pu)">'+(goal||'—')+' kg</div><div class="obj-stat-lbl">Objetivo</div></div></div>'.replace(/kg kg/g,'kg')+(goal?'<div class="obj-bar-wrap"><div class="obj-bar" style="width:'+pct+'%"></div></div><div class="obj-pct">'+pct+'%</div>':'')+'<div class="obj-inp-row"><span class="obj-inp-lbl">Objetivo:</span><input class="obj-inp" type="number" inputmode="decimal" step="0.5" placeholder="kg" value="'+(goal||'')+'"><button class="obj-save-btn" onclick="saveGoal(\''+ex.id+'\',this.previousElementSibling.value)">Guardar</button></div>';
-      c.appendChild(card);
-    });
+  // Per exercise the objective is the app's forecast: did you meet it?
+  var cards=[],tot=0,met=0;
+  Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){
+    var r=objForecastInfo(ex.id);if(!r)return;cards.push({gk:gk,ex:ex,r:r});tot+=r.n;met+=r.ok;
+  });});
+  var sum=document.createElement('div');sum.className='obj-card';
+  var pc=tot?Math.round(met/tot*100):null;
+  sum.innerHTML='<div class="obj-name">Previsiones cumplidas</div>'+(pc===null?'<div class="obj-sub2">Cuando tengas 3 sesiones de un ejercicio empezaré a medir si cumples la previsión.</div>':
+    '<div class="obj-big">'+pc+'%</div><div class="obj-sub2">'+met+' de '+tot+' sesiones recientes con todas las series al peso previsto o más</div><div class="obj-bar-wrap"><div class="obj-bar" style="width:'+pc+'%"></div></div>');
+  c.appendChild(sum);
+  var lastG='';
+  cards.forEach(function(x){
+    if(x.gk!==lastG){var h2=document.createElement('div');h2.className='sec-h';h2.textContent=G[x.gk].name;c.appendChild(h2);lastG=x.gk;}
+    var r=x.r,card=document.createElement('div');card.className='obj-card';card.onclick=function(){openProgModal(x.ex.id);};
+    var h='<div class="obj-top"><div class="obj-name" style="margin:0">'+x.ex.name+'</div>'+(r.last?'<span class="fc-st '+r.last.k+'">'+r.last.t+'</span>':'')+'</div>';
+    if(r.last)h+='<div class="obj-cmp"><div><span>Previsto</span><b>'+r.last.pred.map(function(v){return v===null?'–':fmtN(v);}).join(' · ')+'</b></div><div><span>Hecho '+rpFmtD(r.last.d)+'</span><b>'+r.last.act.map(function(v,i){var p=r.last.pred[i];if(isNaN(v))return '–';var cl=p===null?'':v>p+0.05?'up':v<p-0.05?'dn':'';return '<i class="'+cl+'">'+fmtN(v)+'</i>';}).join(' · ')+'</b></div></div>';
+    if(r.n)h+='<div class="obj-sub2">Cumplida en '+r.ok+' de '+r.n+' sesiones recientes</div><div class="obj-bar-wrap"><div class="obj-bar" style="width:'+Math.round(r.ok/r.n*100)+'%"></div></div>';
+    if(r.next)h+='<div class="obj-next"><span>Próxima</span><b>'+sfStr(r.next.sets,'kg',true)+'</b></div><div class="obj-sub2">'+r.next.why+'</div>';
+    card.innerHTML=h;c.appendChild(card);
   });
 }
-function saveGoal(id,val){if(!ud.goals)ud.goals={};var v=parseFloat(val);if(!isNaN(v)&&v>0){ud.goals[id]=v;sched();renderObj();showToast('Objetivo guardado');}}
+// Last session vs its forecast, and how many recent sessions met it (all sets ≥ forecast)
+function objHomeTxt(){
+  var tot=0,met=0;Object.keys(G).forEach(function(gk){if(gk==='abdominales')return;G[gk].exs.forEach(function(ex){var r=objForecastInfo(ex.id);if(r){tot+=r.n;met+=r.ok;}});});
+  return tot?Math.round(met/tot*100)+'% previsiones cumplidas':'Previsiones';
+}
+function objForecastInfo(id){
+  var bt=sfBacktest(id),pj=sfProject(id,1);if(!bt.rows.length&&!pj.length)return null;
+  var rows=bt.rows.slice(-6),ok=0;
+  function judge(x){var up=0,dn=0;x.pred.forEach(function(p,i){var a=x.act[i];if(p===null||isNaN(a))return;if(a>p+0.05)up++;else if(a<p-0.05)dn++;});return dn?{k:'down',t:'No cumplida'}:up?{k:'beat',t:'Superada'}:{k:'up',t:'Cumplida'};}
+  rows.forEach(function(x){if(judge(x).k!=='down')ok++;});
+  var l=bt.rows[bt.rows.length-1],last=null;if(l){var j=judge(l);last={d:l.d,pred:l.pred,act:l.act,k:j.k,t:j.t};}
+  return{last:last,ok:ok,n:rows.length,next:pj[0]||null};
+}
 function saveBWGoal(val){if(!ud.goals)ud.goals={};var v=parseFloat(val);if(!isNaN(v)&&v>0){ud.goals.bodyWeight=v;sched();renderObj();showToast('Objetivo guardado');}}
 
 // ── STATS ──────────────────────────────────────────────────────────────────────
