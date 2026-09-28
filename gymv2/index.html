@@ -842,6 +842,17 @@ body *{text-transform:none!important}
 .rp-goal{background:#f4f4f2;border-radius:10px;padding:10px 12px}
 .rp-kpis{grid-template-columns:repeat(3,1fr)}
 @media print{.rp-period{display:none!important}}
+.exr-start{width:100%;height:48px;border-radius:14px;border:1.5px solid var(--acc);background:transparent;color:var(--acc);font-weight:800;font-size:15px;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;cursor:pointer}
+.exr{display:flex;align-items:center;gap:10px;background:rgba(200,245,66,.1);border-radius:14px;padding:8px 8px 8px 14px;margin-bottom:12px}
+.exr-dot{width:9px;height:9px;border-radius:50%;background:var(--acc);animation:pulse 1.2s infinite}
+.exr b{font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--acc)}.exr-l{flex:1;font-size:12px;color:var(--mu3)}
+.exr button{height:38px;padding:0 14px;border-radius:12px;border:none;background:var(--tx);color:#000;font-weight:800;font-family:var(--font)}
+.rpe-s{color:var(--mu3);font-size:14px;margin:4px 2px 14px}
+.rpe-g{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.rpe-g button{height:52px;border-radius:14px;border:none;background:var(--s2);color:var(--tx);font-weight:800;font-size:18px;font-family:var(--font)}
+.rpe-g button.on{background:var(--acc);color:#000}
+.rpe-h{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-top:8px}
+.hist-gt{color:var(--mu3);font-weight:600}
 </style>
 </head>
 <body>
@@ -1059,7 +1070,7 @@ body *{text-transform:none!important}
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.09.27-17';
+var APP_VERSION='2026.09.28-1';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -1682,6 +1693,54 @@ function saveSeries(id,date,idx,val){
 function gRest(id){return ud['rest_'+id]!==undefined?parseInt(ud['rest_'+id]):30;}
 function sRest(id,val){var v=parseInt(val);if(isNaN(v)||v<5)v=5;if(v>600)v=600;ud['rest_'+id]=v;var t=document.getElementById('tv_'+id);if(t&&!tRun)t.textContent=fmtTime(v);sched();}
 function fmt(s){var m=Math.floor(s/60),sc=s%60;return m+':'+(sc<10?'0':'')+sc;}
+// ── EXERCISE TIMER ───────────────────────────────────────────────────────────
+// One timer per exercise: starts with 'Empezar ejercicio' (or the first set),
+// stops when the last set is saved (then asks RPE) or with 'Terminar'.
+// Time is added to ud.exTimes[date][id]; per group per day = sum of its exercises.
+var exRun=null,exRunInt=null;
+try{exRun=JSON.parse(localStorage.getItem('gym_extimer'))||null;}catch(e){}
+function exRunSave(){try{if(exRun)localStorage.setItem('gym_extimer',JSON.stringify(exRun));else localStorage.removeItem('gym_extimer');}catch(e){}}
+function exElapsed(){return exRun?Math.max(0,Math.round((Date.now()-exRun.start)/1000)):0;}
+function exStart(id,date){
+  if(exRun&&exRun.id===id&&exRun.date===date)return;
+  if(exRun)exStop(false);
+  exRun={id:id,date:date,start:Date.now()};exRunSave();exTickStart();vibrate1();
+}
+function exStop(ask){
+  if(!exRun)return;var id=exRun.id,date=exRun.date,secs=exElapsed();
+  var prev=(ud.exTimes&&ud.exTimes[date]&&ud.exTimes[date][id])||0;
+  saveExTime(id,date,prev+secs);exRun=null;exRunSave();
+  if(ask)openRpeSheet(id,date,prev+secs);
+}
+function exTickStart(){if(exRunInt)return;exRunInt=setInterval(function(){
+  if(!exRun){clearInterval(exRunInt);exRunInt=null;return;}
+  var e=document.getElementById('exrun_'+exRun.id);if(e)e.textContent=fmtTime(exElapsed());
+  var g=document.getElementById('md-time');if(g)g.textContent=groupTimeTxt();
+},1000);}
+if(exRun)exTickStart();
+function exTimeOf(id,date){var t=(ud.exTimes&&ud.exTimes[date]&&ud.exTimes[date][id])||0;if(exRun&&exRun.id===id&&exRun.date===date)t+=exElapsed();return t;}
+function groupSecs(gk,date){var t=0;if(G[gk])G[gk].exs.forEach(function(ex){t+=exTimeOf(ex.id,date);});return t;}
+function groupTimeTxt(){var d=ejShownDay||todayStr(),t=groupSecs(cG,d);return t?' · '+fmtMin(t):'';}
+// RPE sheet shown when an exercise is finished
+function openRpeSheet(id,date,secs){
+  var bg=document.getElementById('rpe-sheet');
+  if(!bg){bg=document.createElement('div');bg.className='modal-bg';bg.id='rpe-sheet';bg.innerHTML='<div class="modal" id="rpe-body"></div>';document.body.appendChild(bg);bg.addEventListener('click',function(e){if(e.target===bg)closeRpeSheet();});}
+  var ex=fEx(id),cur=getRPE(id,date);
+  document.getElementById('rpe-body').innerHTML='<h3>'+(ex?ex.name:'Ejercicio')+' terminado</h3><p class="rpe-s">'+fmtMin(secs)+' en este ejercicio. ¿Qué tal ha ido? (RPE)</p>'+
+    '<div class="rpe-g">'+[1,2,3,4,5,6,7,8,9,10].map(function(v){return '<button class="'+(cur===v?'on':'')+'" onclick="pickRpe(\''+id+'\',\''+date+'\','+v+')">'+v+'</button>';}).join('')+'</div>'+
+    '<div class="rpe-h"><span>1 muy fácil</span><span>7 me quedaban 3</span><span>10 al fallo</span></div>'+
+    '<button class="modal-btn sec" style="width:100%;margin-top:12px" onclick="closeRpeSheet()">Omitir</button>';
+  bg.classList.add('on');
+}
+function pickRpe(id,date,v){saveRPE(id,date,v);vibrate1();closeRpeSheet();}
+function closeRpeSheet(){var bg=document.getElementById('rpe-sheet');if(bg)bg.classList.remove('on');if(curScreen==='ej')renderEj();}
+// Called after a set is saved: start the timer on the first set, stop it on the last
+function exAfterSet(id,date){
+  if(date!==todayStr())return false;
+  if(!exRun||exRun.id!==id)exStart(id,date);
+  var ex=fEx(id);if(ex&&exDoneToday(ex,date)){exStop(true);return true;}
+  return false;
+}
 function saveRPE(id,date,v){if(!ud.rpe)ud.rpe={};ud.rpe[id+'_'+date]=v;sched();updateTestFuerza(id,date);}
 function getRPE(id,date){return ud.rpe?ud.rpe[id+'_'+date]||0:0;}
 function saveNote(id,val){ud['note_'+id]=val;sched();}
@@ -1957,7 +2016,7 @@ function updateMiniDash(){
   var g=G[cG],tot=0,dn=0,sd=ejShownDay||td;
   if(g&&g.exs){tot=g.exs.length;g.exs.forEach(function(ex){if(exDoneToday(ex,sd))dn++;});}
   if(e=document.getElementById('md-prog'))e.textContent=dn+'/'+tot;
-  if(e=document.getElementById('md-prog-lbl'))e.textContent=sd===td?'hechos hoy':'hechos el '+new Date(sd+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric'});
+  if(e=document.getElementById('md-prog-lbl'))e.innerHTML=(sd===td?'hechos hoy':'hechos el '+new Date(sd+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric'}))+'<span id="md-time">'+groupTimeTxt()+'</span>';
   if(e=document.getElementById('md-prog-bar'))e.style.width=(tot?Math.round(dn/tot*100):0)+'%';
 }
 function exDoneToday(ex,td){
@@ -2563,10 +2622,10 @@ function histDayHtml(date){
   if(!date)return '<div class="hist-empty">Toca un día del calendario para ver lo que hiciste</div>';
   var r=histDay(date),h='<div class="dash-card-title" style="text-transform:none;font-size:14px;color:var(--tx)">'+fmtShort(date)+'</div>';
   if(!r.any&&!r.bw&&!r.kcal)return h+'<div class="hist-empty">Nada registrado este día</div>';
-  var meta=[];if(r.vol)meta.push(r.vol+' kg de volumen');if(r.secs)meta.push(fmtMin(r.secs)+' entrenando');if(r.bw)meta.push('&#9878;&#65039; '+r.bw+' kg');if(r.kcal)meta.push('&#127869;&#65039; '+r.kcal+' kcal');
+  var meta=[];if(r.vol)meta.push(r.vol+' kg de volumen');if(r.secs)meta.push(fmtMin(r.secs)+' entrenando ('+Object.keys(r.groups).filter(function(g){return groupSecs(g,date);}).map(function(g){return (G[g]?G[g].name:g)+' '+fmtMin(groupSecs(g,date));}).join(', ')+')');if(r.bw)meta.push('&#9878;&#65039; '+r.bw+' kg');if(r.kcal)meta.push('&#127869;&#65039; '+r.kcal+' kcal');
   if(meta.length)h+='<div class="hist-ex-meta" style="margin-top:-6px">'+meta.join(' · ')+'</div>';
   Object.keys(r.groups).forEach(function(gk){
-    h+='<div class="hist-grp" style="color:'+histColor(gk)+'"><span class="hist-dot" style="background:'+histColor(gk)+'"></span>'+(G[gk]?G[gk].name:gk)+'</div>';
+    var gsec=groupSecs(gk,date);h+='<div class="hist-grp" style="color:'+histColor(gk)+'"><span class="hist-dot" style="background:'+histColor(gk)+'"></span>'+(G[gk]?G[gk].name:gk)+(gsec?'<span class="hist-gt"> · '+fmtMin(gsec)+'</span>':'')+'</div>';
     r.groups[gk].forEach(function(e){
       // Best weight up to (and including) that day, to flag records set on it
       var prevMax=-Infinity;if(ud.series&&ud.series[e.ex.id])Object.keys(ud.series[e.ex.id]).forEach(function(d){if(d<date)histVals(e.ex.id,d).forEach(function(v){if(v>prevMax)prevMax=v;});});
@@ -2694,7 +2753,7 @@ function bCard(ex,gk,td,refDay,focused){
   var lm=last?getMeanForDay(ex.id,last.date):null,obj=null;
   var sfc=setForecast(ex.id,td,ser.sets,isAbs),stepInfo=sfc?{step:sfc.step,conf:sfc.conf}:exStep(ex.id,isAbs);
   var objStr=sfc?sfc.sets.filter(function(x){return x;}).map(function(x){return (x.up?'<b class="obj">':'<b>')+fmtN(x.v)+'</b>';}).join(' · '):'';
-  if(isDone&&hasToday)meta=serData.filter(function(v){return v!==null&&v!=='';}).map(fmtN).join(' · ')+' '+u;
+  if(isDone&&hasToday){var tt=exTimeOf(ex.id,td);meta=serData.filter(function(v){return v!==null&&v!=='';}).map(fmtN).join(' · ')+' '+u+(tt?' · '+fmtMin(tt):'');}
   else{
     if(focused)meta=ex.s+(stepInfo.conf>=0.6?' · saltos de '+fmtN(stepInfo.step)+' '+u:'')+(sfc?' · '+(sfc.sets.some(function(x){return x&&x.up;})?'<b class="obj">'+sfc.short+'</b>':sfc.short):'');
     else meta=objStr?'Hoy: '+objStr+' '+u:ex.s;
@@ -2740,6 +2799,11 @@ function bCard(ex,gk,td,refDay,focused){
     else{var lastSet=last&&nextIdx>=0?parseFloat(last.sets[nextIdx]):NaN;adjV=!isNaN(lastSet)?lastSet:(last?parseFloat(last.sets.filter(function(v){return !isNaN(parseFloat(v));}).slice(-1)[0])||0:0);}
   }
   var step=stepInfo.conf>=0.6||isAbs?stepInfo.step:2.5;
+  var runHtml='';
+  if(focused&&td===today&&!isDone){
+    if(exRun&&exRun.id===ex.id&&exRun.date===td)runHtml='<div class="exr on"><span class="exr-dot"></span><b id="exrun_'+ex.id+'">'+fmtTime(exElapsed())+'</b><span class="exr-l">en este ejercicio</span><button onclick="exStop(true)">Terminar</button></div>';
+    else{var prevT=exTimeOf(ex.id,td);runHtml='<button class="exr-start" onclick="exStart(\''+ex.id+'\',\''+td+'\');renderEj()">'+icon('timer','ic sm')+' Empezar ejercicio'+(prevT?' · llevas '+fmtMin(prevT):'')+'</button>';}
+  }
   var actions=(nextIdx>=0&&(sfc||ref||last||adjV>0)?
     '<div class="adj"><button class="adj-b" onclick="ejAdjust(\''+ex.id+'\','+(-step)+')">&minus; '+fmtN(step)+'</button>'+
       '<button class="adj-v" onclick="ejLogNext(\''+ex.id+'\',\''+td+'\')"><b><span id="adjv_'+ex.id+'">'+fmtN(adjV)+'</span> '+u+'</b><span>Guardar serie '+(nextIdx+1)+'</span></button>'+
@@ -2757,17 +2821,11 @@ function bCard(ex,gk,td,refDay,focused){
   rpeHtml+='</div></div>';
   var tf=isAbs?null:calcTestFuerza(ex.id,td,rpe),tfHtml='';
   if(tf){tfHtml='<div class="test-fuerza" id="tf_'+ex.id+'"><div><div class="tf-label">Test de fuerza</div><div class="tf-desc">Haz <strong>'+tf.reps+' reps</strong> con <strong>'+tf.weight+' kg</strong></div><div style="font-size:11px;color:var(--mu);margin-top:2px">1RM estimado: '+tf.rm+' kg'+(rpe?' · RPE '+rpe:'')+'</div></div></div>';}
-  var tDisp=timerState.elapsed>0?fmtTime(timerState.elapsed):'0:00',tRunning=timerState.running;
-  var timerHtml='<div class="ex-timer-row">'+
-    '<button class="ex-timer-btn'+(tRunning?' running':timerState.elapsed>0?' stopped':'')+'" id="extbtn_'+ex.id+'" onclick="toggleExTimer(\''+ex.id+'\',\''+td+'\')">'+(tRunning?'&#9646;&#9646; Pausar':'&#9654; '+(timerState.elapsed>0?'Continuar':'Cronómetro'))+'</button>'+
-    '<div class="ex-timer-display'+(timerState.elapsed>0&&!tRunning?' stopped':'')+'" id="extdisp_'+ex.id+'">'+tDisp+'</div>'+
-    '<button class="ex-timer-reset" onclick="resetExTimer(\''+ex.id+'\',\''+td+'\')" title="Reiniciar">&#8635;</button>'+
-  '</div>';
   var extra='<div class="exc-extra">'+
     rpeHtml+
     (isAbs||!sfc?'':(function(){var f=sfStatus(ex.id);return '<div class="fc-pill" onclick="openProgModal(\''+ex.id+'\')"><span style="flex:1">&#128302; Previsión: '+sfStr(sfc.sets,u,true)+'<br><span style="font-size:11px;color:var(--mu3)">'+sfc.why+'</span></span>'+(f?'<span class="fc-st '+f.k+'">'+f.t+'</span>':'')+'</div>';})())+
     (isFat?'<div class="fc-pill" style="border-color:rgba(204,41,54,0.3);background:rgba(204,41,54,0.08);color:var(--red2)">&#9888; Por debajo de la última sesión — posible fatiga</div>':'')+
-    tfHtml+timerHtml+
+    tfHtml+
     '<div class="exc-cfg">Descanso <input type="number" inputmode="numeric" min="5" max="600" value="'+rs+'" onchange="sRest(\''+ex.id+'\',this.value)" onfocus="this.select()"> s'+(pr?'<span style="margin-left:auto">PR <b style="color:var(--gold)">'+pr+' '+u+'</b></span>':'')+'</div>'+
     '<textarea class="note-inp" placeholder="Notas..." onchange="saveNote(\''+ex.id+'\',this.value)">'+note+'</textarea>'+
     '<div class="exc-tools">'+
@@ -2791,7 +2849,7 @@ function bCard(ex,gk,td,refDay,focused){
       '</div>'+
       (focused?'':'<button class="exc-chev" onclick="focusEx(\''+ex.id+'\')" aria-label="Abrir">'+icon('chevd','ic')+'</button>')+
     '</div>'+
-    '<div class="exc-body">'+setsHtml+actions+extra+'</div>';
+    '<div class="exc-body">'+runHtml+setsHtml+actions+extra+'</div>';
   return card;
 }
 function focusEx(id){ejFocusSel=ejFocusId===id?'__none__':id;renderEj();var c=document.querySelector('.excard[data-exid="'+id+'"]');if(c&&c.classList.contains('foc'))c.scrollIntoView({behavior:'smooth',block:'nearest'});}
@@ -2803,7 +2861,8 @@ function ejLogNext(id,date){
   saveSeries(id,date,idx,String(ejAdj[id]));
   if(date===todayStr()){var b=document.getElementById('tb_'+id);if(b)startRestTimer(b,id);}
   vibrate1();
-  if(exDoneToday(ex,date)){ejFocusSel=null;ejAdj[id]=null;setTimeout(renderEj,250);}
+  var fin=exAfterSet(id,date);
+  if(exDoneToday(ex,date)){ejFocusSel=null;ejAdj[id]=null;if(!fin)setTimeout(renderEj,250);}
   else renderEj();
 }
 function toggleEjOpen(id){
@@ -2819,6 +2878,7 @@ function onSetChange(id,date,idx,el){
   if(el.value!==''&&date===todayStr()){var b=document.getElementById('tb_'+id);if(b)startRestTimer(b,id);}
   var ex=fEx(id);
   if(el.value!=='')ejAdj[id]=parseFloat(el.value);
+  if(el.value!=='')exAfterSet(id,date);
   if(ex&&!dm[id+'_'+date]&&exDoneToday(ex,date)){ejFocusSel=null;ejAdj[id]=null;setTimeout(function(){if(!document.activeElement||!document.activeElement.closest||!document.activeElement.closest('.exc-set'))renderEj();},300);}
   updateMiniDash();
 }
