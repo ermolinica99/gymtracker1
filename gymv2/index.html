@@ -862,6 +862,15 @@ body *{text-transform:none!important}
 .rec-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:6px;padding-bottom:6px}.rec-scroll h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);margin:16px 0 8px}
 .rec-ing{margin:0;padding-left:18px;line-height:1.6;font-size:14px}.rec-steps{margin:0;padding-left:20px;line-height:1.55;font-size:14px}.rec-steps li{margin-bottom:8px}
 .rec-tip{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--s2);color:var(--mu);font-size:13px}.rec-act{display:flex;flex-direction:column;gap:8px;margin-top:12px}.rec-act .modal-btn{width:100%;flex:none}
+.menu-entry{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:0 0 12px;padding:14px;border-radius:16px;border:1px solid var(--acc);background:transparent;color:inherit;font-family:var(--font);cursor:pointer}.menu-entry span{flex:1;display:flex;flex-direction:column;gap:2px}.menu-entry b{font-size:14px}.menu-entry small{color:var(--mu);font-size:12px}.menu-entry .ic{color:var(--acc)}
+.menu-acts{display:flex;gap:8px;margin-bottom:12px}.menu-acts .modal-btn{height:44px;font-size:14px}.menu-acts .modal-btn.sec{flex:0 0 96px}
+.menu-day.past{opacity:.5}.menu-day.today{border-color:var(--acc)}.menu-day .alim-franja-title small{color:var(--mu);font-weight:500;font-size:12px;margin-left:4px}
+.menu-row{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;padding:9px 2px;border:none;border-top:1px solid var(--s3,#222);background:transparent;color:inherit;font-family:var(--font);cursor:pointer}.menu-row:disabled{cursor:default}
+.menu-ml{flex:0 0 96px;font-size:11.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}.menu-op{flex:1;font-size:13.5px;font-weight:600}.menu-row.empty .menu-op{color:var(--mu);font-weight:500;font-style:italic}
+.rec-row.on{border-color:var(--acc)}.rec-tag{font-style:normal;font-size:10px;color:var(--acc);border:1px solid var(--acc);border-radius:6px;padding:0 4px;margin-left:4px;vertical-align:2px}
+.shop-sub{font-size:12.5px;color:var(--mu);margin:0 0 10px}.shop-cat{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);font-weight:700;margin:16px 0 6px}.shop-cat small{text-transform:none;letter-spacing:0;color:var(--mu);font-weight:500}
+.shop-it{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 2px;border:none;background:transparent;color:inherit;font-family:var(--font);cursor:pointer}.shop-it.on .shop-nm,.shop-it.on .shop-q{opacity:.4;text-decoration:line-through}
+.shop-nm{flex:1;font-size:14px;display:flex;flex-direction:column}.shop-nm small{font-size:11px;color:var(--mu)}.shop-q{font-size:13px;font-weight:700;white-space:nowrap}.shop-tag{font-size:10.5px;border-radius:6px;padding:2px 6px;background:var(--s2);color:var(--mu);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1003,6 +1012,20 @@ body *{text-transform:none!important}
     <div class="scrl" id="alim-content"></div>
   </div>
 
+  <!-- PLAN SEMANAL -->
+  <div class="scr" id="scr-menu">
+    <div class="hdr">
+      <button class="hdr-back" onclick="goMain('alim')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div class="hdr-info"><h1>Plan semanal</h1><p>Menú y lista de la compra</p></div>
+    </div>
+    <div class="dnav">
+      <button class="dnbtn" onclick="chMenuWeek(-1)">&#8249;</button>
+      <div class="dncen"><div class="dnlbl" id="menu-week-lbl"></div><div class="dnsub" id="menu-week-sub"></div></div>
+      <button class="dnbtn" onclick="chMenuWeek(1)">&#8250;</button>
+    </div>
+    <div class="scrl" id="menu-content"></div>
+  </div>
+
   <!-- FOTOS -->
   <div class="scr" id="scr-fotos">
     <div class="hdr">
@@ -1079,7 +1102,7 @@ body *{text-transform:none!important}
 <div class="toast" id="toast"></div>
 
 <script>
-var APP_VERSION='2026.10.03-2';
+var APP_VERSION='2026.10.03-3';
 // Auto-update: the page can be cached by the browser/CDN for minutes, so ask
 // the server for the latest version (unique URL skips caches) and reload if newer
 function checkUpdate(){
@@ -2012,7 +2035,7 @@ function goMain(s,btn){
   if(btn)document.querySelectorAll('.main-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
   document.querySelectorAll('#main .scr').forEach(function(b){b.classList.remove('on');});
-  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',stats:'scr-stats',hist:'scr-hist',prev:'scr-prev',checkin:'scr-checkin'};
+  var ids={home:'scr-home',dash:'scr-dash',ej:'scr-ej',peso:'scr-peso',obj:'scr-obj',fotos:'scr-fotos',alim:'scr-alim',menu:'scr-menu',stats:'scr-stats',hist:'scr-hist',prev:'scr-prev',checkin:'scr-checkin'};
   document.getElementById(ids[s]).classList.add('on');
   if(s==='home')renderHome();
   else if(s==='dash')renderDash();
@@ -2029,6 +2052,7 @@ function goMain(s,btn){
   else if(s==='obj')renderObj();
   else if(s==='fotos')renderFotos();
   else if(s==='alim'){renderAlim();}
+  else if(s==='menu')renderMenu();
   else if(s==='hist')renderHist();
   else if(s==='prev')renderPrev();
   else if(s==='checkin')renderCheckin();
@@ -3194,6 +3218,9 @@ function renderAlim(){
       '<div class="alim-summary-stat"><div class="alim-summary-val">'+totalProt+' g</div><div class="alim-summary-lbl">Proteína</div></div>'+
     '</div>';
   content.appendChild(summary);
+  var mb=document.createElement('button');mb.className='menu-entry';mb.onclick=function(){goMain('menu');};
+  mb.innerHTML=icon('cal','ic sm')+'<span><b>Plan semanal y lista de la compra</b><small>Elige qué comes cada día y genera la compra</small></span>'+icon('chev','ic sm');
+  content.appendChild(mb);
 
   // Each franja
   franjas.forEach(function(franja){
@@ -3311,6 +3338,111 @@ function openReceta(franja,idx,name){
     (rc.tip?'<div class="rec-tip">'+esc(rc.tip)+'</div>':'')+'</div>'+
     (slots.length?'<div class="rec-act">'+slots.map(function(s){var on=cur[s.m+'_opt']===s.i;return '<button class="modal-btn'+(on?' sec':'')+'" '+(on?'disabled':'onclick="pickReceta(\''+s.m+'\','+s.i+')"')+'>'+(on?'Elegida para '+lbl[s.m]:'Elegir para '+lbl[s.m])+'</button>';}).join('')+'</div>':'');
   bg.classList.add('on');
+}
+// ── PLAN SEMANAL + LISTA DE LA COMPRA ────────────────────────────────────────
+// SHOP.p: product -> [category, shop, unit]; SHOP.s: option name -> [[product, qty per ración]]
+var SHOP={"p":{"Pechuga de pollo":["Proteínas","Ambos","g"],"Pavo picado":["Proteínas","Ambos","g"],"Ternera picada magra":["Proteínas","Ambos","g"],"Ternera en tiras (wok/fajitas)":["Proteínas","Mercadona","g"],"Langostinos pelados (congelados)":["Proteínas","Lidl","g"],"Gambas peladas (congeladas)":["Proteínas","Lidl","g"],"Lomos de merluza":["Proteínas","Mercadona","g"],"Salmón":["Proteínas","Ambos","g"],"Salmón apto para crudo (congelado)":["Proteínas","Ambos","g"],"Atún al natural (latas)":["Proteínas","Ambos","g"],"Jamón serrano":["Proteínas","Ambos","g"],"Huevos":["Proteínas","Ambos","ud"],"Claras de huevo pasteurizadas":["Proteínas","Mercadona","ml"],"Lentejas cocidas (bote)":["Proteínas","Ambos","g"],"Edamame":["Proteínas","Ambos","g"],"Skyr":["Lácteos y desayuno","Mercadona","g"],"Yogur proteico":["Lácteos y desayuno","Ambos","ud"],"Queso fresco batido 0%":["Lácteos y desayuno","Ambos","g"],"Leche semidesnatada":["Lácteos y desayuno","Ambos","ml"],"Proteína whey":["Lácteos y desayuno","Ambos","g"],"Nueces":["Lácteos y desayuno","Ambos","g"],"Mozzarella light rallada":["Lácteos y desayuno","Ambos","g"],"Queso parmesano rallado":["Lácteos y desayuno","Ambos","g"],"Queso light en lonchas":["Lácteos y desayuno","Ambos","g"],"Copos de avena":["Carbohidratos","Ambos","g"],"Arroz basmati":["Carbohidratos","Ambos","g"],"Fideos de arroz":["Carbohidratos","Lidl","g"],"Fideos chinos de trigo":["Carbohidratos","Lidl","g"],"Pasta integral":["Carbohidratos","Ambos","g"],"Quinoa":["Carbohidratos","Lidl","g"],"Tortillas de trigo":["Carbohidratos","Mercadona","ud"],"Masa de pizza integral refrigerada":["Carbohidratos","Mercadona","ud"],"Pan integral de molde":["Carbohidratos","Ambos","reb"],"Pan de hamburguesa integral":["Carbohidratos","Ambos","ud"],"Tortitas de maíz":["Carbohidratos","Ambos","ud"],"Tortitas de arroz":["Carbohidratos","Ambos","ud"],"Patata":["Carbohidratos","Ambos","g"],"Boniato":["Carbohidratos","Ambos","g"],"Pimiento rojo":["Verduras y fruta","Ambos","g"],"Pimiento verde":["Verduras y fruta","Ambos","g"],"Zanahoria":["Verduras y fruta","Ambos","g"],"Cebolla":["Verduras y fruta","Ambos","g"],"Cebolla morada":["Verduras y fruta","Ambos","ud"],"Cebolletas":["Verduras y fruta","Ambos","ud"],"Brotes de soja":["Verduras y fruta","Lidl","g"],"Brócoli":["Verduras y fruta","Ambos","g"],"Judías verdes":["Verduras y fruta","Ambos","g"],"Espárragos trigueros":["Verduras y fruta","Ambos","g"],"Champiñones":["Verduras y fruta","Ambos","g"],"Verdura para saltear o al vapor":["Verduras y fruta","Ambos","g"],"Ensalada en bolsa / lechuga":["Verduras y fruta","Ambos","g"],"Tomate":["Verduras y fruta","Ambos","ud"],"Tomate triturado (lata)":["Verduras y fruta","Ambos","g"],"Tomate frito (bote)":["Verduras y fruta","Ambos","g"],"Maíz dulce (lata)":["Verduras y fruta","Ambos","g"],"Aguacate":["Verduras y fruta","Ambos","ud"],"Lima":["Verduras y fruta","Ambos","ud"],"Limón":["Verduras y fruta","Ambos","ud"],"Cilantro fresco (opcional)":["Verduras y fruta","Mercadona","x"],"Ajo":["Verduras y fruta","Ambos","diente"],"Jengibre fresco":["Verduras y fruta","Lidl","x"],"Fresas":["Verduras y fruta","Ambos","g"],"Manzana":["Verduras y fruta","Ambos","ud"],"Pera":["Verduras y fruta","Ambos","ud"],"Salsa de soja":["Despensa","Lidl","x"],"Aceite de sésamo":["Despensa","Lidl","x"],"Semillas de sésamo":["Despensa","Ambos","x"],"Leche de coco (lata)":["Despensa","Lidl","x"],"Curry en polvo":["Despensa","Ambos","x"],"Especias para fajitas":["Despensa","Ambos","x"],"Orégano seco":["Despensa","Ambos","x"],"Tomillo o romero seco":["Despensa","Ambos","x"],"Pimentón dulce":["Despensa","Ambos","x"],"Vinagre de manzana o módena":["Despensa","Ambos","x"],"Aceite de oliva virgen extra":["Despensa","Ambos","x"],"Aceite de girasol":["Despensa","Ambos","x"],"Salsa de ostras":["Despensa","Ambos","x"],"Maicena":["Despensa","Ambos","x"],"Guindilla":["Despensa","Ambos","x"]},"s":{"Skyr con avena y fresas":[["Skyr",300],["Copos de avena",50],["Fresas",150],["Nueces",15]],"Huevos con jamón y pan":[["Huevos",3],["Claras de huevo pasteurizadas",100],["Pan integral de molde",2],["Jamón serrano",50]],"Batido de whey y avena":[["Proteína whey",30],["Leche semidesnatada",250],["Copos de avena",50],["Manzana",1]],"Yogur proteico, queso batido y pera":[["Yogur proteico",1],["Queso fresco batido 0%",125],["Pera",1]],"Atún con tortitas de maíz":[["Atún al natural (latas)",80],["Tortitas de maíz",6],["Huevos",1],["Tomate",1]],"Jamón con tortitas de arroz":[["Jamón serrano",50],["Tortitas de arroz",4],["Manzana",1]],"Pollo con arroz y verdura":[["Pechuga de pollo",220],["Arroz basmati",90],["Verdura para saltear o al vapor",200],["Aceite de oliva virgen extra"]],"Salmón con patata y ensalada":[["Salmón",200],["Patata",300],["Ensalada en bolsa / lechuga",100],["Aceite de oliva virgen extra"]],"Lentejas con arroz y huevo":[["Lentejas cocidas (bote)",400],["Arroz basmati",60],["Huevos",1]],"Wok de pollo con fideos de arroz":[["Pechuga de pollo",200],["Fideos de arroz",80],["Pimiento rojo",80],["Zanahoria",60],["Cebolla",50],["Brotes de soja",50],["Ajo",2],["Jengibre fresco"],["Salsa de soja"],["Aceite de sésamo"],["Aceite de girasol"]],"Wok de langostinos con fideos y brócoli":[["Langostinos pelados (congelados)",200],["Fideos chinos de trigo",80],["Brócoli",100],["Pimiento rojo",60],["Zanahoria",50],["Ajo",2],["Jengibre fresco"],["Salsa de soja"],["Aceite de sésamo"],["Aceite de girasol"],["Guindilla"]],"Wok de ternera con salsa de ostras":[["Ternera en tiras (wok/fajitas)",180],["Fideos chinos de trigo",80],["Champiñones",80],["Cebolletas",2],["Pimiento verde",60],["Ajo",2],["Salsa de ostras"],["Salsa de soja"],["Aceite de girasol"],["Maicena"]],"Curry de pollo con coco y arroz":[["Pechuga de pollo",200],["Arroz basmati",70],["Cebolla",150],["Pimiento rojo",80],["Ajo",2],["Leche de coco (lata)"],["Curry en polvo"],["Aceite de oliva virgen extra"]],"Fajitas de ternera con pico de gallo":[["Ternera en tiras (wok/fajitas)",180],["Tortillas de trigo",2],["Pimiento rojo",80],["Cebolla",60],["Tomate",1],["Cebolla morada",0.25],["Lima",1],["Cilantro fresco (opcional)"],["Especias para fajitas"],["Aceite de oliva virgen extra"]],"Salmón al horno con boniato y espárragos":[["Salmón",200],["Boniato",250],["Espárragos trigueros",120],["Limón",1],["Ajo",1],["Pimentón dulce"],["Aceite de oliva virgen extra"]],"Hamburguesa de pavo con boniato":[["Pavo picado",200],["Boniato",220],["Pan de hamburguesa integral",1],["Queso light en lonchas",20],["Cebolla",40],["Tomate",0.5],["Ensalada en bolsa / lechuga",30],["Ajo",1],["Pimentón dulce"],["Aceite de oliva virgen extra"]],"Pasta a la boloñesa fit":[["Ternera picada magra",180],["Pasta integral",80],["Tomate triturado (lata)",200],["Cebolla",75],["Zanahoria",50],["Ajo",2],["Queso parmesano rallado",15],["Orégano seco"],["Aceite de oliva virgen extra"]],"Pollo al limón con verduras al vapor":[["Pechuga de pollo",200],["Brócoli",150],["Zanahoria",100],["Patata",100],["Limón",1],["Ajo",1],["Tomillo o romero seco"],["Aceite de oliva virgen extra"]],"Merluza con puré de boniato":[["Lomos de merluza",220],["Boniato",250],["Judías verdes",100],["Ajo",1],["Pimentón dulce"],["Aceite de oliva virgen extra"]],"Revuelto de gambas, champiñones y espárragos":[["Huevos",3],["Claras de huevo pasteurizadas",100],["Gambas peladas (congeladas)",150],["Champiñones",80],["Espárragos trigueros",80],["Pan integral de molde",2],["Ajo",1],["Aceite de oliva virgen extra"]],"Ensalada templada de quinoa, atún y aguacate":[["Quinoa",70],["Atún al natural (latas)",160],["Aguacate",0.5],["Tomate",1],["Maíz dulce (lata)",40],["Cebolla morada",0.25],["Vinagre de manzana o módena"],["Aceite de oliva virgen extra"]],"Poke bowl de salmón":[["Salmón apto para crudo (congelado)",160],["Arroz basmati",70],["Edamame",80],["Aguacate",0.5],["Zanahoria",50],["Salsa de soja"],["Aceite de sésamo"],["Semillas de sésamo"]],"Pizza de pollo, champiñones y mozzarella":[["Masa de pizza integral refrigerada",1],["Tomate frito (bote)",60],["Pechuga de pollo",130],["Champiñones",60],["Mozzarella light rallada",60],["Orégano seco"],["Aceite de oliva virgen extra"]],"Pizza de atún, pimiento y maíz":[["Masa de pizza integral refrigerada",1],["Tomate frito (bote)",60],["Atún al natural (latas)",120],["Pimiento rojo",50],["Maíz dulce (lata)",40],["Mozzarella light rallada",50],["Orégano seco"]],"Pavo o pollo con boniato":[["Pechuga de pollo",200],["Boniato",250],["Ensalada en bolsa / lechuga",100],["Aceite de oliva virgen extra"]],"Langostinos con patata":[["Langostinos pelados (congelados)",250],["Patata",230],["Verdura para saltear o al vapor",150],["Aceite de oliva virgen extra"]],"Tortilla francesa con jamón":[["Huevos",3],["Claras de huevo pasteurizadas",100],["Pan integral de molde",2],["Jamón serrano",30]]}};
+var MENU_LV={comida:['Wok de pollo con fideos de arroz','Curry de pollo con coco y arroz','Pasta a la boloñesa fit','Fajitas de ternera con pico de gallo','Wok de langostinos con fideos y brócoli'],
+  cena:['Pollo al limón con verduras al vapor','Merluza con puré de boniato','Revuelto de gambas, champiñones y espárragos','Ensalada templada de quinoa, atún y aguacate','Pizza de pollo, champiñones y mozzarella']};
+var MENU_FS={comida:['Pollo con arroz y verdura','Salmón con patata y ensalada'],cena:['Pavo o pollo con boniato','Langostinos con patata']};
+var MEAL_LBL={desayuno:'Desayuno',almuerzo:'Media mañana',comida:'Comida',cena:'Cena'};
+var SHOP_CATS=['Proteínas','Lácteos y desayuno','Carbohidratos','Verduras y fruta','Otros','Despensa'];
+var menuMon=null;
+function menuDefaultMon(){var t=todayStr(),d=new Date(t+'T12:00:00').getDay();return d===0||d===6?addDays(fcMonday(t),7):fcMonday(t);}
+function menuDays(){var a=[];for(var i=0;i<7;i++)a.push(addDays(menuMon,i));return a;}
+function chMenuWeek(n){menuMon=addDays(menuMon,7*n);renderMenu();}
+function optIdxByName(m,name){var ops=ALIM[m]?ALIM[m].opciones:[];for(var i=0;i<ops.length;i++)if(ops[i].nombre===name)return i;return -1;}
+function planOpt(d,m){var a=ud.alim&&ud.alim[d];if(!a||a[m+'_opt']===undefined||!ALIM[m])return null;return ALIM[m].opciones[a[m+'_opt']]||null;}
+function setPlan(d,m,i){if(!ud.alim)ud.alim={};if(!ud.alim[d])ud.alim[d]={};var a=ud.alim[d];
+  if(i===null)delete a[m+'_opt'];else a[m+'_opt']=i;delete a[m+'_kcal'];
+  Object.keys(a).forEach(function(k){if(k.indexOf(m+'_food_')===0)delete a[k];});}
+function menuEditable(d,m){var a=ud.alim&&ud.alim[d];return d>=todayStr()&&!(a&&a[m+'_done']);}
+function applyWeekMenu(){
+  showConfirm('¿Cargar el menú de la semana? L-V: recetas del plan; fin de semana: combos rápidos; desayunos y media mañana rotando. Cambia lo que no hayas marcado como comido.',function(){
+    menuDays().forEach(function(d,i){
+      MEALS.forEach(function(m){if(!menuEditable(d,m))return;var name=null;
+        if(m==='comida'||m==='cena')name=i<5?MENU_LV[m][i]:MENU_FS[m][i-5];
+        var idx=name?optIdxByName(m,name):(ALIM[m]&&ALIM[m].opciones.length?i%ALIM[m].opciones.length:-1);
+        if(idx>=0)setPlan(d,m,idx);});
+    });
+    sched();renderMenu();showToast('Menú cargado');
+  });
+}
+function clearWeekMenu(){
+  showConfirm('¿Vaciar la planificación de esta semana? (no toca lo que ya has marcado como comido)',function(){
+    menuDays().forEach(function(d){MEALS.forEach(function(m){if(menuEditable(d,m))setPlan(d,m,null);});});sched();renderMenu();});
+}
+function openMenuPick(d,m){
+  var bg=document.getElementById('menu-sheet');
+  if(!bg){bg=document.createElement('div');bg.className='modal-bg';bg.id='menu-sheet';bg.innerHTML='<div class="modal rec-modal" id="menu-body"></div>';document.body.appendChild(bg);bg.addEventListener('click',function(e){if(e.target===bg)closeMenuPick();});}
+  var cur=ud.alim&&ud.alim[d]&&ud.alim[d][m+'_opt'],dl=rpFmtD(d,{weekday:'long',day:'numeric',month:'short'});
+  document.getElementById('menu-body').innerHTML='<div class="rec-top"><div><h3>'+MEAL_LBL[m]+'</h3><p class="rpe-s">'+dl.charAt(0).toUpperCase()+dl.slice(1)+'</p></div><button class="ib" onclick="closeMenuPick()">&#10005;</button></div>'+
+    '<div class="rec-scroll"><div class="rec-list">'+ALIM[m].opciones.map(function(o,i){
+      return '<button class="rec-row'+(cur===i?' on':'')+'" onclick="pickMenu(\''+d+'\',\''+m+'\','+i+')"><span>'+esc(o.nombre)+(RECETAS[o.nombre]?' <em class="rec-tag">receta</em>':'')+'</span><small>'+calcOpcionKcal(o)+' kcal · '+opcionProt(o)+' g</small></button>';}).join('')+'</div></div>'+
+    '<div class="rec-act"><button class="modal-btn sec" onclick="pickMenu(\''+d+'\',\''+m+'\',null)">Sin planificar</button></div>';
+  bg.classList.add('on');
+}
+function closeMenuPick(){var bg=document.getElementById('menu-sheet');if(bg)bg.classList.remove('on');}
+function pickMenu(d,m,i){setPlan(d,m,i);sched();closeMenuPick();renderMenu();}
+// Shopping list: planned, not-yet-eaten meals from today to the end of the week
+function shopMeals(){var c=ud.shopMeals;return c&&c.length?c:MEALS.slice();}
+function toggleShopMeal(m){var c=shopMeals().slice(),i=c.indexOf(m);if(i>=0){if(c.length===1)return;c.splice(i,1);}else c.push(m);ud.shopMeals=MEALS.filter(function(x){return c.indexOf(x)>=0;});sched();renderMenu();}
+function buildShop(){
+  var meals=shopMeals(),items={},n=0,today=todayStr();
+  menuDays().forEach(function(d){if(d<today)return;meals.forEach(function(m){if(!menuEditable(d,m))return;var o=planOpt(d,m);if(!o)return;n++;
+    var lst=SHOP.s[o.nombre];
+    if(!lst)lst=o.alimentos.map(function(f){var u=(f.unidad||'').toLowerCase();return [f.nombre,f.cantidad,u==='gr'?'g':u==='uds'?'ud':u,'Otros'];});
+    lst.forEach(function(it){var meta=SHOP.p[it[0]]||[it[3]||'Otros','',it[2]||'x'],k=it[0];
+      if(!items[k])items[k]={name:k,cat:meta[0],shop:meta[1],u:meta[2],q:0,uses:{}};
+      if(it[1]!=null)items[k].q+=it[1];items[k].uses[o.nombre]=1;});
+  });});
+  return {n:n,items:items};
+}
+function fmtShopQ(it){
+  if(it.u==='x'||!it.q)return '';
+  var q=Math.round(it.q*100)/100;
+  if(it.u==='g')return q>=1000?(Math.round(q/100)/10+' kg'):q+' g';
+  if(it.u==='ml')return q>=1000?(Math.round(q/100)/10+' l'):q+' ml';
+  if(it.u==='reb')return q+' rebanada'+(q>1?'s':'');
+  if(it.u==='diente')return q+' diente'+(q>1?'s':'');
+  if(q%1)return Math.ceil(q)+' ud (usas '+(q===0.5?'½':q===0.25?'¼':q===0.75?'¾':q)+')';
+  return q+' ud';
+}
+function shopChecked(){if(!ud.shop)ud.shop={};if(!ud.shop[menuMon])ud.shop[menuMon]={};return ud.shop[menuMon];}
+function toggleShopItem(k){var c=shopChecked();if(c[k])delete c[k];else c[k]=true;sched();renderMenu();}
+function shareShop(){
+  var r=buildShop(),days=menuDays(),t='Lista de la compra ('+rpFmtD(days[0])+' – '+rpFmtD(days[6])+')\n',c=shopChecked();
+  SHOP_CATS.forEach(function(cat){var its=Object.keys(r.items).map(function(k){return r.items[k];}).filter(function(i){return i.cat===cat&&!c[i.name];});if(!its.length)return;
+    t+='\n'+cat.toUpperCase()+'\n'+its.map(function(i){var q=fmtShopQ(i);return '• '+i.name+(q?': '+q:'')+(i.shop&&i.shop!=='Ambos'?' ('+i.shop+')':'');}).join('\n')+'\n';});
+  if(navigator.share)navigator.share({title:'Lista de la compra',text:t}).catch(function(){});
+  else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast('Lista copiada');});
+}
+function renderMenu(){
+  if(!menuMon)menuMon=menuDefaultMon();
+  var days=menuDays(),today=todayStr(),thisMon=fcMonday(today);
+  document.getElementById('menu-week-lbl').textContent=rpFmtD(days[0])+' – '+rpFmtD(days[6]);
+  document.getElementById('menu-week-sub').textContent=menuMon===thisMon?'Esta semana':menuMon===addDays(thisMon,7)?'Semana que viene':'';
+  var c=document.getElementById('menu-content'),H='';
+  H+='<div class="menu-acts"><button class="modal-btn" onclick="applyWeekMenu()">Cargar menú semanal</button><button class="modal-btn sec" onclick="clearWeekMenu()">Vaciar</button></div>';
+  var DN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  days.forEach(function(d,i){var kc=0,pr=0,past=d<today;
+    var rows=MEALS.map(function(m){var a=ud.alim&&ud.alim[d]||{},o=planOpt(d,m),done=!!a[m+'_done'],ed=menuEditable(d,m);
+      if(done)kc+=franjaKcal(a,m);else if(o)kc+=calcOpcionKcal(o);if(o)pr+=opcionProt(o);
+      return '<button class="menu-row'+(o?'':' empty')+'" '+(ed?'onclick="openMenuPick(\''+d+'\',\''+m+'\')"':'disabled')+'><span class="menu-ml">'+MEAL_LBL[m]+'</span><span class="menu-op">'+(o?esc(o.nombre):'Sin planificar')+(done?' ✓':'')+'</span></button>';}).join('');
+    H+='<div class="alim-card menu-day'+(past?' past':'')+(d===today?' today':'')+'"><div class="alim-franja-header"><div class="alim-franja-title">'+DN[i]+' <small>'+rpFmtD(d)+(d===today?' · hoy':'')+'</small></div><span class="alim-franja-kcal">'+(kc?kc+' kcal · '+pr+' g':'')+'</span></div>'+rows+'</div>';
+  });
+  // Shopping list
+  var r=buildShop(),chk=shopChecked(),meals=shopMeals(),keys=Object.keys(r.items);
+  H+='<div class="alim-card" id="shop-card"><div class="alim-franja-header"><div class="alim-franja-title">'+icon('list','ic sm')+' Lista de la compra</div>'+(keys.length?'<button class="alim-rec-btn" style="margin:0" onclick="shareShop()">Compartir</button>':'')+'</div>'+
+    '<p class="shop-sub">'+(r.n?r.n+' comidas planificadas desde '+(menuMon<today?'hoy':'el lunes')+' hasta el domingo. Toca un producto cuando lo tengas.':'Planifica la semana para generar la lista.')+'</p>'+
+    '<div class="alim-option-tabs">'+MEALS.map(function(m){return '<button class="alim-opt-btn'+(meals.indexOf(m)>=0?' on':'')+'" onclick="toggleShopMeal(\''+m+'\')">'+MEAL_LBL[m]+'</button>';}).join('')+'</div>';
+  SHOP_CATS.forEach(function(cat){var its=keys.map(function(k){return r.items[k];}).filter(function(i){return i.cat===cat;});if(!its.length)return;
+    its.sort(function(a,b){return (chk[a.name]?1:0)-(chk[b.name]?1:0)||a.name.localeCompare(b.name);});
+    H+='<div class="shop-cat">'+cat+(cat==='Despensa'?' <small>(duran semanas; compra solo si no tienes)</small>':'')+'</div>'+its.map(function(i){var q=fmtShopQ(i),on=!!chk[i.name];
+      return '<button class="shop-it'+(on?' on':'')+'" onclick="toggleShopItem(\''+i.name.replace(/'/g,"\\'")+'\')"><span class="alim-food-check'+(on?' on':'')+'">'+(on?'&#10003;':'')+'</span><span class="shop-nm">'+esc(i.name)+'<small>'+Object.keys(i.uses).length+' plato'+(Object.keys(i.uses).length>1?'s':'')+'</small></span><span class="shop-q">'+q+'</span>'+(i.shop&&i.shop!=='Ambos'?'<span class="shop-tag">'+i.shop+'</span>':'')+'</button>';}).join('');
+  });
+  H+='</div>';
+  c.innerHTML=H;
 }
 function closeReceta(){var bg=document.getElementById('rec-sheet');if(bg)bg.classList.remove('on');}
 function pickReceta(m,i){closeReceta();selectAlimOpt(m,i);showToast('Receta elegida');}
